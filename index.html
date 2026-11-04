@@ -33,9 +33,54 @@ kbd{background:#252a66;border-radius:5px;padding:1px 7px;color:#ffe14d}
 #fake .page{background:#fff;max-width:760px;margin:20px auto;padding:56px 64px;box-shadow:0 1px 4px rgba(0,0,0,.3);min-height:900px;font-size:15px;line-height:1.7}
 #fake h3{font-size:26px;margin:0 0 18px}
 #fake p{margin:0 0 14px}
+
+/* Passwort-Sperrbildschirm */
+#passwordGate{
+  position:fixed;inset:0;z-index:1000;
+  display:flex;align-items:center;justify-content:center;
+  padding:24px;background:
+    radial-gradient(ellipse at top,#25205d 0%,#080620 65%);
+}
+#passwordGate .gate-card{
+  width:min(100%,420px);padding:34px 28px;
+  border:1px solid #5552a5;border-radius:20px;
+  background:rgba(24,27,69,.96);
+  box-shadow:0 20px 70px rgba(0,0,0,.55),0 0 35px rgba(61,245,255,.12);
+  text-align:center;
+}
+#passwordGate h2{
+  margin:0 0 10px;color:#ffe14d;font-size:28px;
+  text-shadow:2px 2px 0 #ff3d8b;
+}
+#passwordGate p{color:#b6bbea;margin:0 0 22px}
+#passwordGate input{
+  display:block;width:100%;padding:14px 16px;margin:0 0 12px;
+  border:1px solid #5552a5;border-radius:10px;
+  background:#080620;color:#fff;font:inherit;font-size:18px;
+  text-align:center;outline:none;
+}
+#passwordGate input:focus{border-color:#3df5ff;box-shadow:0 0 0 3px rgba(61,245,255,.14)}
+#passwordGate button{
+  width:100%;padding:14px;border:0;border-radius:10px;
+  background:linear-gradient(90deg,#ff3d8b,#695cff);
+  color:#fff;font:inherit;font-size:16px;font-weight:800;cursor:pointer;
+}
+#passwordGate button:hover{filter:brightness(1.12)}
+#passwordError{min-height:20px;margin:12px 0 0!important;color:#ff789c!important;font-size:13px}
+
 </style>
 </head>
 <body>
+<div id="passwordGate">
+  <form class="gate-card" id="passwordForm">
+    <h2>🔒 3D-ARCADE</h2>
+    <p>Gib das Passwort ein, um die Spiele zu öffnen.</p>
+    <input id="passwordInput" type="password" inputmode="numeric"
+           placeholder="Passwort" aria-label="Passwort" autocomplete="off" required>
+    <button type="submit">Website öffnen</button>
+    <p id="passwordError" role="alert" aria-live="polite"></p>
+  </form>
+</div>
 <div id="hub">
   <h1>3D-ARCADE</h1>
   <p class="sub">12 originale Spiele mit eigener 3D-Engine. Such dir eins aus.</p>
@@ -63,6 +108,19 @@ window.onerror=function(m,s,l){
 };
 (function(){
 var $=function(i){return document.getElementById(i)};
+var unlocked=false;
+$('passwordForm').addEventListener('submit',function(e){
+  e.preventDefault();
+  if($('passwordInput').value==='0101'){
+    unlocked=true;
+    $('passwordGate').style.display='none';
+    $('passwordError').textContent='';
+    $('passwordInput').value='';
+  }else{
+    $('passwordError').textContent='Falsches Passwort. Versuch es noch einmal.';
+    $('passwordInput').select();
+  }
+});
 var cv=$('c'),g=cv.getContext('2d'),hub=$('hub'),fake=$('fake');
 var W=800,H=600,F=500,G=null,paused=false,K={},M={x:0,y:0,d:0},R=Math.random;
 var cl=function(v,a,b){return Math.max(a,Math.min(b,v))};
@@ -160,588 +218,3 @@ function tunnel(){
 /* ============ 2. LABYRINTH-FLUCHT (Raycaster) ============ */
 function maze(){
   var lv=1,N,map,px,py,a,tl,dead=0,sc=0;
-  function gen(){
-    N=Math.min(31,7+lv*2);map=[];for(var i=0;i<N*N;i++)map.push(1);
-    var st=[[1,1]];map[N+1]=0;
-    while(st.length){
-      var c=st[st.length-1],o=[];
-      [[2,0],[-2,0],[0,2],[0,-2]].forEach(function(q){var x=c[0]+q[0],y=c[1]+q[1];if(x>0&&y>0&&x<N-1&&y<N-1&&map[y*N+x])o.push(q)});
-      if(o.length){var q=o[R()*o.length|0];map[(c[1]+q[1]/2)*N+c[0]+q[0]/2]=0;map[(c[1]+q[1])*N+c[0]+q[0]]=0;st.push([c[0]+q[0],c[1]+q[1]])}else st.pop();
-    }
-    map[(N-2)*N+N-1]=2;px=1.5;py=1.5;a=.2;tl=25+N*5;
-  }
-  gen();
-  return{
-    kd:function(k){if(dead&&k=='Space')start('maze')},
-    pd:function(){if(dead)start('maze')},
-    u:function(dt){
-      if(dead)return;
-      tl-=dt;if(tl<=0){dead=1;return}
-      var tr=(K.KeyD||K.ArrowRight?1:0)-(K.KeyA||K.ArrowLeft?1:0),fw=(K.KeyW||K.ArrowUp?1:0)-(K.KeyS||K.ArrowDown?1:0);
-      if(M.d){tr+=(M.x/W-.5)*3;fw=1}
-      a+=tr*2.4*dt;
-      var s=fw*3*dt,mx=Math.cos(a)*s,my=Math.sin(a)*s;
-      if(!map[Math.floor(py)*N+Math.floor(px+mx+(mx>0?.2:-.2))])px+=mx;
-      if(!map[Math.floor(py+my+(my>0?.2:-.2))*N+Math.floor(px)])py+=my;
-      if(Math.floor(px)==N-2&&Math.floor(py)==N-2){sc+=Math.floor(tl)*10;lv++;gen()}
-    },
-    d:function(){
-      var gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#241250');gr.addColorStop(.5,'#050510');gr.addColorStop(1,'#1d1d44');g.fillStyle=gr;g.fillRect(0,0,W,H);
-      for(var x=0;x<W;x+=2){
-        var cm=2*x/W-1,rx=Math.cos(a)-Math.sin(a)*.66*cm,ry=Math.sin(a)+Math.cos(a)*.66*cm;
-        var mx=Math.floor(px),my=Math.floor(py),dx=Math.abs(1/rx),dy=Math.abs(1/ry),sx=rx<0?-1:1,sy=ry<0?-1:1;
-        var sdx=(rx<0?px-mx:mx+1-px)*dx,sdy=(ry<0?py-my:my+1-py)*dy,side=0,hit=0;
-        for(var i=0;i<90&&!hit;i++){if(sdx<sdy){sdx+=dx;mx+=sx;side=0}else{sdy+=dy;my+=sy;side=1}hit=map[my*N+mx]||0}
-        var dist=Math.max(.05,side?sdy-dy:sdx-dx),lh=H/dist,f=Math.max(.12,1-dist/10);
-        var c=hit==2?[60,255,140]:side?[70,100,255]:[110,140,255];
-        g.fillStyle='rgb('+((c[0]*f)|0)+','+((c[1]*f)|0)+','+((c[2]*f)|0)+')';g.fillRect(x,H/2-lh/2,2,lh);
-      }
-      var cs=Math.min(6,Math.min(W,H)*.3/N),ox=W-N*cs-12,oy=70;
-      for(var j=0;j<N;j++)for(var k=0;k<N;k++){var m=map[j*N+k];if(m){g.fillStyle=m==2?'#3f9':'rgba(120,140,255,.55)';g.fillRect(ox+k*cs,oy+j*cs,cs,cs)}}
-      g.fillStyle='#ffe14d';g.fillRect(ox+px*cs-2,oy+py*cs-2,4,4);
-      T('Level '+lv+' · Punkte '+sc,16,60,20,'#fff','left');T('Zeit '+Math.ceil(tl),W/2,60,26,tl<10?'#ff5a7a':'#fff');
-      T('W/S laufen, A/D drehen (oder Maus gedrückt halten). Ziel ist die grüne Wand in der Ecke',W/2,H-10,13,'#889');
-      if(dead){T('ZEIT ABGELAUFEN',W/2,H/2,50,'#ff5a7a');T('Level '+lv+' · Leertaste = nochmal',W/2,H/2+40,20)}
-    }
-  };
-}
-
-/* ============ 3. STAR FIGHTER ============ */
-function fighter(){
-  var x=0,y=0,hp=5,sc=0,t=0,dead=0,en=[],bl=[],ps=[],st=[],cd=0,sp=1;
-  for(var i=0;i<90;i++)st.push({x:(R()-.5)*160,y:(R()-.5)*90,z:R()*160});
-  function boom(a,b,c,n){for(var i=0;i<n;i++)ps.push({x:a,y:b,z:c,vx:(R()-.5)*14,vy:(R()-.5)*14,vz:(R()-.5)*14,l:.7})}
-  return{
-    kd:function(k){if(dead&&k=='Space')start('fighter')},
-    pd:function(){if(dead)start('fighter')},
-    u:function(dt){
-      st.forEach(function(s){s.z-=70*dt;if(s.z<1){s.z=160;s.x=(R()-.5)*160;s.y=(R()-.5)*90}});
-      ps.forEach(function(p){p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt;p.l-=dt});ps=ps.filter(function(p){return p.l>0});
-      if(dead)return;
-      t+=dt;
-      var a=arrowK();x+=a[0]*16*dt;y+=a[1]*16*dt;
-      if(M.d){x+=((M.x/W-.5)*30-x)*Math.min(1,8*dt);y+=(-(M.y/H-.5)*18-y)*Math.min(1,8*dt)}
-      x=cl(x,-14,14);y=cl(y,-8,8);
-      cd-=dt;if((K.Space||M.d)&&cd<=0){cd=.14;bl.push({x:x-.9,y:y,z:1.5},{x:x+.9,y:y,z:1.5})}
-      bl.forEach(function(b){b.z+=170*dt});
-      sp-=dt;if(sp<=0){sp=Math.max(.35,1.1-t/70);en.push({bx:(R()-.5)*26,by:(R()-.5)*12,x:0,y:0,z:170,hp:2,ph:R()*6,am:R()*4})}
-      en.forEach(function(e){
-        e.z-=(30+t*.5)*dt;e.x=cl(e.bx+Math.sin(t*1.5+e.ph)*e.am,-15,15);e.y=cl(e.by+Math.cos(t*1.2+e.ph)*e.am*.5,-9,9);
-        bl.forEach(function(b){if(!e.dead&&Math.abs(b.z-e.z)<3&&Math.abs(b.x-e.x)<1.9&&Math.abs(b.y-e.y)<1.4){b.z=999;e.hp--;if(e.hp<=0){e.dead=1;sc+=10;boom(e.x,e.y,e.z,14)}}});
-        if(!e.dead&&e.z<1.5&&e.z>-2&&Math.abs(e.x-x)<2&&Math.abs(e.y-y)<1.4){e.dead=1;hp--;boom(e.x,e.y,e.z,20);if(hp<=0){dead=1;boom(x,y,0,30)}}
-      });
-      en=en.filter(function(e){return !e.dead&&e.z>-8});bl=bl.filter(function(b){return b.z<180});
-    },
-    d:function(){
-      E.fog=[4,4,18];E.far=170;E.x=x*.6;E.y=y*.6+2.2;E.z=-9;E.yw=0;E.pt=-.1;
-      bg('#02020c','#0d0a2a');
-      st.forEach(function(s){sph(s.x,s.y,s.z,.14,[255,255,255])});
-      en.forEach(function(e){
-        box(e.x,e.y,e.z,1,.6,1,[220,50,70],[255,170,170]);box(e.x,e.y,e.z,2.4,.15,.5,[150,30,60],[255,120,140]);box(e.x,e.y+.7,e.z,.25,.5,.5,[255,200,60]);
-      });
-      bl.forEach(function(b){box(b.x,b.y,b.z,.1,.1,1.2,[255,240,90])});
-      ps.forEach(function(p){sph(p.x,p.y,p.z,.28,[255,170,60])});
-      if(!dead){box(x,y,0,.5,.3,1.3,[60,220,255],[200,255,255]);box(x,y,-.3,1.7,.1,.6,[40,160,230],[200,255,255]);box(x,y+.4,-.7,.1,.4,.5,[255,255,255])}
-      flush();
-      var v=vt(x,y,60);if(v[2]>1){g.strokeStyle='rgba(120,255,200,.8)';g.lineWidth=2;g.beginPath();g.arc(W/2+v[0]/v[2]*F,H/2-v[1]/v[2]*F,12,0,7);g.stroke()}
-      T('Punkte '+sc,16,60,22,'#fff','left');T('♥'.repeat(Math.max(0,hp)),W-16,60,24,'#ff5a7a','right');
-      T('WASD / Maus gedrückt halten = steuern und schießen · Leertaste = Feuer',W/2,H-10,13,'#889');
-      if(dead){T('SCHIFF ZERSTÖRT',W/2,H/2,50,'#ff5a7a');T(sc+' Punkte · Leertaste = nochmal',W/2,H/2+40,20)}
-    }
-  };
-}
-
-/* ============ 4. ZIGZAG-HIMMEL ============ */
-function zig(){
-  var tiles=[],cx=0,cz=0,pdir=0,seg=5,bx=0,bz=0,d=0,v=8,t=0,gem=0,fall=0,vy=0,by=.7,dead=0,camx=-6.4,camz=-6.4;
-  function add(){tiles.push({x:cx,z:cz,g:R()<.18&&tiles.length>4});if(pdir)cz+=2;else cx+=2;if(--seg<=0){pdir^=1;seg=2+(R()*5|0)}}
-  while(tiles.length<70)add();
-  function turn(){if(dead){start('zig');return}if(!fall)d^=1}
-  return{
-    kd:function(k){if(k=='Space'||k.indexOf('Arrow')==0||k=='KeyA'||k=='KeyD')turn()},
-    pd:turn,
-    u:function(dt){
-      t+=dt;
-      if(!dead){
-        if(!fall){
-          v=Math.min(17,8+t*.12);if(d)bz+=v*dt;else bx+=v*dt;
-          var on=false;
-          tiles.forEach(function(q){if(Math.abs(bx-q.x)<1&&Math.abs(bz-q.z)<1)on=true;if(q.g&&Math.hypot(bx-q.x,bz-q.z)<1.4){q.g=0;gem++}});
-          if(!on){fall=1;vy=0}
-        }else{vy-=25*dt;by+=vy*dt;if(by<-14)dead=1}
-      }
-      while(tiles.length<(bx+bz)/2+60)add();
-      camx+=(bx-6.4-camx)*Math.min(1,6*dt);camz+=(bz-6.4-camz)*Math.min(1,6*dt);
-    },
-    d:function(){
-      E.fog=[70,40,110];E.far=75;E.x=camx;E.y=8;E.z=camz;E.yw=.785;E.pt=-.62;
-      bg('#2a1b5a','#ff8fb8');
-      var pr=bx+bz;
-      tiles.forEach(function(q,i){
-        if(Math.abs(q.x+q.z-pr)>80)return;
-        var col=hs((200+i*4)%360,.6,.62);box(q.x,-.3,q.z,1,.3,1,col,[255,255,255]);
-        if(q.g)sph(q.x,1,q.z,.35,[255,230,80]);
-      });
-      sph(bx,by,bz,.5,[255,255,255]);
-      flush();
-      T('Weite '+Math.floor(pr/2)+'   Diamanten '+gem,16,60,22,'#fff','left');
-      T('Tippen / Leertaste / A-D = Richtung wechseln. Bleib auf dem Pfad!',W/2,H-10,13,'#fde');
-      if(dead){T('ABGESTÜRZT',W/2,H/2,52,'#fff');T(Math.floor(pr/2)+' Weite · '+gem+' Diamanten · Tippen = nochmal',W/2,H/2+40,20)}
-    }
-  };
-}
-
-/* ============ 5. SNAKE CHASE ============ */
-function snake(){
-  var N=15,sn=[[7,7],[7,6],[7,5]],d=0,pend=[],tm=0,fd,sc=0,dead=0,yaw=0,ty=0,vx=7.5,vz=7.5,tt=0,DIR=[[0,1],[1,0],[0,-1],[-1,0]];
-  function food(){do{fd=[R()*N|0,R()*N|0]}while(sn.some(function(s){return s[0]==fd[0]&&s[1]==fd[1]}))}
-  food();
-  function turn(r){if(dead){start('snake');return}if(pend.length<2)pend.push(r)}
-  return{
-    kd:function(k){if(k=='KeyD'||k=='ArrowRight')turn(1);if(k=='KeyA'||k=='ArrowLeft')turn(-1);if(dead&&k=='Space')start('snake')},
-    pd:function(x){turn(x>W/2?1:-1)},
-    u:function(dt){
-      tt+=dt;
-      yaw+=(ty-yaw)*Math.min(1,9*dt);
-      vx+=(sn[0][0]+.5-vx)*Math.min(1,12*dt);vz+=(sn[0][1]+.5-vz)*Math.min(1,12*dt);
-      if(dead)return;
-      tm+=dt;
-      if(tm>=Math.max(.09,.22-sn.length*.004)){
-        tm=0;
-        if(pend.length){var r=pend.shift();d=(d+r+4)%4;ty+=r*Math.PI/2}
-        var h=[sn[0][0]+DIR[d][0],sn[0][1]+DIR[d][1]];
-        if(h[0]<0||h[1]<0||h[0]>=N||h[1]>=N||sn.some(function(s){return s[0]==h[0]&&s[1]==h[1]})){dead=1;return}
-        sn.unshift(h);
-        if(h[0]==fd[0]&&h[1]==fd[1]){sc++;food()}else sn.pop();
-      }
-    },
-    d:function(){
-      E.fog=[10,10,35];E.far=30;E.x=vx-Math.sin(yaw)*5.5;E.z=vz-Math.cos(yaw)*5.5;E.y=4.8;E.yw=yaw;E.pt=-.55;
-      bg('#0a0a26','#241552');
-      for(var i=0;i<N;i++)for(var j=0;j<N;j++){
-        if(Math.hypot(i+.5-vx,j+.5-vz)>11)continue;
-        box(i+.5,-.1,j+.5,.5,.1,.5,((i+j)%2)?[40,48,110]:[32,38,90]);
-      }
-      var wc=[255,60,160],we=[255,170,220];
-      box(N/2,.4,-.25,N/2+.5,.4,.25,wc,we);box(N/2,.4,N+.25,N/2+.5,.4,.25,wc,we);box(-.25,.4,N/2,.25,.4,N/2,wc,we);box(N+.25,.4,N/2,.25,.4,N/2,wc,we);
-      sn.forEach(function(s,i){
-        var c=i?hs(150+i*5,.7,.5):[140,255,170];
-        box(s[0]+.5,.35,s[1]+.5,i?.4:.45,i?.3:.35,i?.4:.45,c);
-      });
-      sph(fd[0]+.5,.7+Math.sin(tt*5)*.15,fd[1]+.5,.32,[255,90,130]);
-      flush();
-      T('Länge '+sn.length,16,60,22,'#fff','left');
-      T('A/D oder Tippen links/rechts = abbiegen. Du drehst relativ zur Schlange',W/2,H-10,13,'#99a');
-      if(dead){T('GAME OVER',W/2,H/2,52,'#ff5a7a');T('Länge '+sn.length+' · Leertaste = nochmal',W/2,H/2+40,20)}
-    }
-  };
-}
-
-/* ============ 6. STACK 3D ============ */
-function stack3(){
-  var L=[{x:0,z:0,w:4,d:4}],mv,a=0,p=-6,dr=1,dead=0,deb=[],cy=0,t=0;
-  function nw(){var tp=L[L.length-1];a=L.length%2;p=-6;dr=1;mv={w:tp.w,d:tp.d}}
-  nw();
-  function place(){
-    if(dead){start('stack');return}
-    var tp=L[L.length-1],nx,nz,w=mv.w,d=mv.d;
-    if(a==0){
-      var lo=Math.max(p-w/2,tp.x-tp.w/2),hi=Math.min(p+w/2,tp.x+tp.w/2);
-      if(hi-lo<=.05){dead=1;deb.push({x:p,z:tp.z,w:w,d:d,y:L.length*.6,vy:0});return}
-      if(Math.abs(p-tp.x)<.14){nx=tp.x;w=tp.w}else{
-        nx=(lo+hi)/2;
-        if(p>tp.x)deb.push({x:(hi+p+w/2)/2,z:tp.z,w:p+w/2-hi,d:d,y:L.length*.6,vy:0});else deb.push({x:(lo+p-w/2)/2,z:tp.z,w:lo-(p-w/2),d:d,y:L.length*.6,vy:0});
-        w=hi-lo;
-      }
-      nz=tp.z;
-    }else{
-      var lo2=Math.max(p-d/2,tp.z-tp.d/2),hi2=Math.min(p+d/2,tp.z+tp.d/2);
-      if(hi2-lo2<=.05){dead=1;deb.push({x:tp.x,z:p,w:w,d:d,y:L.length*.6,vy:0});return}
-      if(Math.abs(p-tp.z)<.14){nz=tp.z;d=tp.d}else{
-        nz=(lo2+hi2)/2;
-        if(p>tp.z)deb.push({x:tp.x,z:(hi2+p+d/2)/2,w:w,d:p+d/2-hi2,y:L.length*.6,vy:0});else deb.push({x:tp.x,z:(lo2+p-d/2)/2,w:w,d:lo2-(p-d/2),y:L.length*.6,vy:0});
-        d=hi2-lo2;
-      }
-      nx=tp.x;
-    }
-    L.push({x:nx,z:nz,w:w,d:d});nw();
-  }
-  return{
-    kd:function(k){if(k=='Space'||k=='Enter')place()},
-    pd:place,
-    u:function(dt){
-      t+=dt;
-      deb.forEach(function(q){q.vy-=30*dt;q.y+=q.vy*dt});deb=deb.filter(function(q){return q.y>-25});
-      cy+=(L.length*.6-cy)*Math.min(1,4*dt);
-      if(dead)return;
-      p+=dr*(5+Math.min(6,L.length*.12))*dt;if(p>6){p=6;dr=-1}if(p<-6){p=-6;dr=1}
-    },
-    d:function(){
-      E.fog=[22,16,52];E.far=60;E.x=-7.8;E.y=cy+6;E.z=-7.8;E.yw=.785;E.pt=-.5;
-      bg('#1b1450','#6a3a8a');
-      box(0,-3.3,0,3.2,3,3.2,[50,50,90]);
-      L.forEach(function(b,i){box(b.x,i*.6,b.z,b.w/2,.3,b.d/2,hs((i*14)%360,.65,.55),[255,255,255])});
-      if(!dead){var tp=L[L.length-1];box(a==0?p:tp.x,L.length*.6,a==1?p:tp.z,mv.w/2,.3,mv.d/2,hs((L.length*14)%360,.7,.62),[255,255,255])}
-      deb.forEach(function(q){box(q.x,q.y,q.z,q.w/2,.3,q.d/2,[200,200,220])});
-      flush();
-      T('Höhe '+(L.length-1),W/2,60,32);
-      T('Leertaste oder Tippen = Block setzen. Fast perfekt = Block behält seine Größe',W/2,H-10,13,'#bbd');
-      if(dead){T('TURM GEFALLEN',W/2,H/2,48,'#ff7a7a');T('Höhe '+(L.length-1)+' · Leertaste = nochmal',W/2,H/2+40,20)}
-    }
-  };
-}
-
-/* ============ 7. TUNNEL-PONG ============ */
-function pong3(){
-  var HS=4,ZL=36,px=0,py=0,ax=0,ay=0,bx=0,by=0,bz=18,vx=0,vy=0,vz=14,lives=3,sc=0,dead=0;
-  function serve(){bx=0;by=0;bz=18;vx=(R()-.5)*8;vy=(R()-.5)*8;vz=Math.min(32,14+sc*.9)}
-  function fr(z,c){box(0,HS+.05,z,HS+.1,.06,.06,c);box(0,-HS-.05,z,HS+.1,.06,.06,c);box(HS+.05,0,z,.06,HS+.1,.06,c);box(-HS-.05,0,z,.06,HS+.1,.06,c)}
-  serve();
-  return{
-    kd:function(k){if(dead&&k=='Space')start('pong3')},
-    pd:function(){if(dead)start('pong3')},
-    u:function(dt){
-      if(dead)return;
-      var a=arrowK();
-      if(a[0]||a[1]){px+=a[0]*10*dt;py+=a[1]*10*dt}
-      else if(M.m||M.d){px+=((M.x/W-.5)*2*HS*1.3-px)*Math.min(1,12*dt);py+=(-(M.y/H-.5)*2*HS*1.3-py)*Math.min(1,12*dt)}
-      px=cl(px,-HS+1.2,HS-1.2);py=cl(py,-HS+1,HS-1);
-      var ar=4.5+sc*.35;ax+=cl(bx-ax,-ar*dt,ar*dt);ay+=cl(by-ay,-ar*dt,ar*dt);
-      bx+=vx*dt;by+=vy*dt;bz+=vz*dt;
-      if(Math.abs(bx)>HS-.45){bx=cl(bx,-HS+.45,HS-.45);vx=-vx}
-      if(Math.abs(by)>HS-.45){by=cl(by,-HS+.45,HS-.45);vy=-vy}
-      if(bz>=ZL&&vz>0){
-        if(Math.abs(bx-ax)<1.75&&Math.abs(by-ay)<1.45){vz=-vz;vx+=(bx-ax)*2;vy+=(by-ay)*2}else{sc++;serve()}
-      }
-      if(bz<=.5&&vz<0){
-        if(Math.abs(bx-px)<1.75&&Math.abs(by-py)<1.45){vz=Math.min(40,-vz*1.04);vx=cl(vx+(bx-px)*3,-14,14);vy=cl(vy+(by-py)*3,-14,14)}
-        else{lives--;if(lives<=0)dead=1;else serve()}
-      }
-    },
-    d:function(){
-      E.fog=[6,4,24];E.far=120;E.x=px*.4;E.y=py*.4;E.z=-10;E.yw=0;E.pt=0;
-      g.fillStyle='#06041a';g.fillRect(0,0,W,H);
-      for(var z=0;z<=ZL;z+=4)fr(z,[40,70,170]);
-      fr(bz,[255,240,120]);
-      box(0,0,ZL+.6,HS,HS,.3,[20,16,60],[0,120,200]);
-      box(ax,ay,ZL,1.3,1,.08,[255,80,120],[255,200,220]);
-      sph(bx,by,bz,.45,[255,255,255]);
-      box(px,py,0,1.3,1,.08,[60,220,255],[255,255,255]);
-      flush();
-      T('Punkte '+sc,16,60,22,'#fff','left');T('♥'.repeat(Math.max(0,lives)),W-16,60,24,'#ff5a7a','right');
-      T('Maus bewegen oder WASD: Triff den Ball mit dem blauen Schläger. Der gelbe Ring zeigt, wo der Ball ist',W/2,H-10,13,'#889');
-      if(dead){T('VERLOREN',W/2,H/2,52,'#ff5a7a');T(sc+' Punkte · Leertaste = nochmal',W/2,H/2+40,20)}
-    }
-  };
-}
-
-/* ============ 8. TURM-STURZ ============ */
-function helix(){
-  var P=[[2,0],[2,2],[0,2],[-2,2],[-2,0],[-2,-2],[0,-2],[2,-2]],L=[],k=0,bpx=2,bpz=0,by=2,vy=0,cur=0,dead=0,ca=0,cy=5;
-  function lay(i){
-    var c=[1,1,1,1,1,1,1,1],h=1+(R()<.5?1:0),d=i>0?Math.min(3,1+(i/8|0)):0,j;
-    for(j=0;j<h;j++)c[R()*8|0]=0;
-    for(j=0;j<d;j++){var q=R()*8|0;if(c[q])c[q]=2}
-    return c;
-  }
-  for(var i=0;i<14;i++)L.push(lay(i));
-  function mv(r){if(!dead)k=(k+r+8)%8}
-  return{
-    kd:function(c){if(c=='KeyD'||c=='ArrowRight')mv(1);if(c=='KeyA'||c=='ArrowLeft')mv(-1);if(dead&&c=='Space')start('helix')},
-    pd:function(x){if(dead){start('helix');return}mv(x>W/2?1:-1)},
-    u:function(dt){
-      bpx+=(P[k][0]-bpx)*Math.min(1,14*dt);bpz+=(P[k][1]-bpz)*Math.min(1,14*dt);
-      var df=Math.atan2(bpz,bpx)-ca;df=Math.atan2(Math.sin(df),Math.cos(df));ca+=df*Math.min(1,8*dt);
-      cy+=(by+3.4-cy)*Math.min(1,6*dt);
-      if(dead)return;
-      vy-=28*dt;by+=vy*dt;
-      var yl=-cur*3;
-      if(vy<0&&by-.45<=yl&&by-.45>yl-1){
-        var s=L[cur][k];
-        if(s==1){vy=11;by=yl+.45}else if(s==2)dead=1;
-      }
-      if(by<yl-1.2){cur++;while(L.length<cur+12)L.push(lay(L.length))}
-    },
-    d:function(){
-      E.fog=[16,10,44];E.far=40;E.x=Math.cos(ca)*9;E.z=Math.sin(ca)*9;E.y=cy;E.yw=Math.atan2(-Math.cos(ca),-Math.sin(ca));E.pt=-.32;
-      bg('#150a3a','#4a1f7a');
-      for(var i=Math.max(0,cur-2);i<cur+9&&i<L.length;i++){
-        var y=-i*3,c=L[i];
-        box(0,y-1.5,0,.9,1.5,.9,[90,90,150],[160,160,255]);
-        for(var j=0;j<8;j++){
-          if(c[j]==0)continue;
-          box(P[j][0],y-.2,P[j][1],1,.2,1,c[j]==2?[255,60,90]:hs((i*25+200)%360,.6,.58),c[j]==2?[255,200,210]:[255,255,255]);
-        }
-      }
-      sph(bpx,by,bpz,.45,[255,230,90]);
-      flush();
-      T('Ebene '+cur,W/2,60,32);
-      T('A/D oder Tippen links/rechts: Wandere um den Turm und fall durch die Lücken. Rot ist tödlich',W/2,H-10,13,'#bbd');
-      if(dead){T('ZERSCHELLT',W/2,H/2,52,'#ff5a7a');T('Ebene '+cur+' · Leertaste = nochmal',W/2,H/2+40,20)}
-    }
-  };
-}
-
-/* ============ 9. HOVER-STRASSE ============ */
-function hover(){
-  var x=0,y=0,vy=0,z=0,v=16,t=0,dead=0,rows=[],nr=0,gnd=1;
-  function row(){
-    var r={t:[1,1,1],o:[0,0,0]},q=R();
-    if(nr>6){
-      if(q<.12+Math.min(.1,nr/800)&&!(rows.length&&rows[rows.length-1].g)){r.t=[0,0,0];r.g=1}
-      else if(q<.45)r.t[R()*3|0]=0;
-      else if(q<.75)r.o[R()*3|0]=1;
-    }
-    rows.push(r);nr++;
-  }
-  while(nr<40)row();
-  function jump(){if(dead){start('hover');return}if(gnd)vy=9.5}
-  return{
-    kd:function(k){if(k=='Space'||k=='ArrowUp'||k=='KeyW')jump()},
-    pd:jump,
-    u:function(dt){
-      if(dead)return;
-      t+=dt;v=Math.min(36,16+t*.35);z+=v*dt;
-      var a=arrowK();x+=a[0]*8*dt;
-      if(M.d)x+=((M.x/W-.5)*7-x)*Math.min(1,8*dt);
-      x=cl(x,-3.4,3.4);
-      var ri=Math.floor(z/4),r=rows[ri],ln=Math.floor((x+3)/2),on=!!(r&&ln>=0&&ln<3&&r.t[ln]);
-      vy-=26*dt;y+=vy*dt;
-      gnd=0;
-      if(on&&y<=0&&vy<=0&&y>-.9){y=0;vy=0;gnd=1}
-      if(on&&r.o[ln]&&y<1.3&&Math.abs(z-(ri*4+2))<.9)dead=1;
-      if(y<-9)dead=1;
-      while(nr<ri+40)row();
-    },
-    d:function(){
-      E.fog=[40,10,70];E.far=100;E.x=x*.7;E.y=y*.5+3.2;E.z=z-7;E.yw=0;E.pt=-.22;
-      bg('#12062e','#ff6a9a');
-      var ri=Math.floor(z/4);
-      for(var i=Math.max(0,ri-2);i<ri+24&&i<rows.length;i++){
-        var r=rows[i],c=(i%2)?[60,50,150]:[48,40,125];
-        for(var j=0;j<3;j++){
-          if(r.t[j])box(j*2-2,-.3,i*4+2,1,.3,2,c,[255,70,200],2);
-          if(r.o[j])box(j*2-2,.9,i*4+2,.9,.9,.6,[255,70,110],[255,210,220]);
-        }
-      }
-      box(x,y+.5,z,.45,.22,.9,[60,230,255],[255,255,255]);box(x,y+.45,z-.2,1.1,.07,.4,[40,180,240],[255,255,255]);
-      flush();
-      T('Strecke '+Math.floor(z)+' m',16,60,22,'#fff','left');T(Math.round(v*3.6)+' km/h',W-16,60,22,'#ffd23b','right');
-      T('A/D lenken · Leertaste oder Tippen = springen. Spring über Lücken und rote Blöcke',W/2,H-10,13,'#fde');
-      if(dead){T('ABGESTÜRZT',W/2,H/2,52,'#fff');T(Math.floor(z)+' m · Leertaste = nochmal',W/2,H/2+40,20)}
-    }
-  };
-}
-
-/* ============ 10. ASTEROIDENFELD ============ */
-function aster(){
-  var x=0,y=0,z=0,v=22,en=100,t=0,sc=0,dead=0,A=[],C=[],nz=60,st=[];
-  for(var i=0;i<90;i++)st.push({x:(R()-.5)*200,y:(R()-.5)*120,z:R()*200});
-  function mk(zz){
-    var s=1+R()*2.2;
-    A.push({x:(R()-.5)*34,y:(R()-.5)*20,z:zz,h:[s,s*(.6+R()*.6),s],c:[(110+R()*40)|0,(100+R()*30)|0,(95+R()*30)|0]});
-    if(R()<.3)C.push({x:(R()-.5)*26,y:(R()-.5)*16,z:zz+R()*20});
-  }
-  return{
-    kd:function(k){if(dead&&k=='Space')start('aster')},
-    pd:function(){if(dead)start('aster')},
-    u:function(dt){
-      if(dead)return;
-      t+=dt;var boost=K.Space&&en>0;
-      v=Math.min(60,22+t*.6)*(boost?1.5:1);if(boost)en-=30*dt;else en=Math.min(100,en+8*dt);
-      var pz=z;z+=v*dt;sc+=v*dt*.1;
-      var a=arrowK();x+=a[0]*14*dt;y+=a[1]*14*dt;
-      if(M.d){x+=((M.x/W-.5)*34-x)*Math.min(1,8*dt);y+=(-(M.y/H-.5)*20-y)*Math.min(1,8*dt)}
-      x=cl(x,-16,16);y=cl(y,-10,10);
-      while(nz<z+220){mk(nz);nz+=Math.max(2.2,9-t*.08)}
-      A.forEach(function(s){if(s.z+s.h[2]>=pz-.5&&s.z-s.h[2]<=z+.5&&Math.abs(s.x-x)<s.h[0]+.9&&Math.abs(s.y-y)<s.h[1]+.6)dead=1});
-      C.forEach(function(c){if(!c.d&&c.z>=pz-1&&c.z<=z+1&&Math.hypot(c.x-x,c.y-y)<1.8){c.d=1;en=Math.min(100,en+25);sc+=25}});
-      A=A.filter(function(s){return s.z>z-12});C=C.filter(function(c){return !c.d&&c.z>z-12});
-      st.forEach(function(s){if(s.z<z-10){s.z+=200;s.x=(R()-.5)*200;s.y=(R()-.5)*120}});
-    },
-    d:function(){
-      E.fog=[4,4,16];E.far=220;E.x=x*.7;E.y=y*.7+2;E.z=z-9;E.yw=0;E.pt=-.08;
-      bg('#02020c','#100a30');
-      st.forEach(function(s){sph(s.x,s.y,s.z+z*0,.14,[255,255,255])});
-      A.forEach(function(s){box(s.x,s.y,s.z,s.h[0],s.h[1],s.h[2],s.c,[70,64,58])});
-      C.forEach(function(c){sph(c.x,c.y,c.z,.6,[80,240,255])});
-      if(!dead){
-        box(x,y,z,.5,.28,1.1,[60,220,255],[200,255,255]);box(x,y,z-.3,1.6,.1,.5,[40,160,230],[200,255,255]);
-        if(K.Space&&en>0)box(x,y,z-1.6,.3,.2,.6,[255,170,60]);
-      }
-      flush();
-      g.fillStyle='rgba(255,255,255,.2)';g.fillRect(W/2-80,52,160,10);g.fillStyle='#ffd23b';g.fillRect(W/2-80,52,160*en/100,10);
-      T('Punkte '+Math.floor(sc),16,60,22,'#fff','left');T(Math.round(v*3.6)+' km/h',W-16,60,22,'#3df5ff','right');
-      T('WASD oder Maus gedrückt halten = steuern · Leertaste = Boost · Sammle die blauen Kristalle',W/2,H-10,13,'#889');
-      if(dead){T('KOLLISION!',W/2,H/2,52,'#ff5a7a');T(Math.floor(sc)+' Punkte · Leertaste = nochmal',W/2,H/2+40,20)}
-    }
-  };
-}
-
-/* ============ 11. SCHIESSBUDE ============ */
-function gallery(){
-  var tg=[],t=0,tl=45,sc=0,sh=0,hit=0,cx=W/2,cy=H/2,dead=0,ps=[],sp=0;
-  function cam(){E.x=0;E.y=1.6;E.z=-10;E.yw=0;E.pt=0}
-  function spawn(){var b=R()<.22;tg.push({x:(R()-.5)*20,y:.8+R()*5.5,z:12+R()*38,b:b,l:2.4+R()*1.2,ph:R()*6,r:b?.8:1})}
-  function px(o){return o.x+Math.sin(t*1.5+o.ph)*1.5}
-  function fire(sx0,sy0){
-    if(dead)return;
-    cam();sh++;
-    var best=null,bz=1e9;
-    tg.forEach(function(o){
-      var v=vt(px(o),o.y,o.z);if(v[2]<1)return;
-      var sx=W/2+v[0]/v[2]*F,sy=H/2-v[1]/v[2]*F,r=o.r/v[2]*F;
-      if(Math.hypot(sx0-sx,sy0-sy)<r*1.1&&v[2]<bz){bz=v[2];best=o}
-    });
-    if(best){
-      best.l=0;hit++;sc+=best.b?-15:Math.round(10+bz/3);
-      for(var i=0;i<10;i++)ps.push({x:px(best),y:best.y,z:best.z,vx:(R()-.5)*10,vy:(R()-.5)*10,vz:(R()-.5)*6,l:.5,b:best.b});
-    }
-  }
-  return{
-    kd:function(k){if(dead&&k=='Space'){start('gallery');return}if(k=='Space')fire(cx,cy)},
-    pd:function(x,y){if(dead){start('gallery');return}cx=x;cy=y;fire(x,y)},
-    u:function(dt){
-      ps.forEach(function(p){p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt;p.l-=dt});ps=ps.filter(function(p){return p.l>0});
-      if(dead)return;
-      t+=dt;tl-=dt;if(tl<=0){dead=1;return}
-      var a=arrowK();if(a[0]||a[1]){cx=cl(cx+a[0]*500*dt,0,W);cy=cl(cy-a[1]*500*dt,0,H)}else if(M.m){cx=M.x;cy=M.y}
-      sp-=dt;if(sp<=0&&tg.length<7){sp=.45;spawn()}
-      tg.forEach(function(o){o.l-=dt});tg=tg.filter(function(o){return o.l>0});
-    },
-    d:function(){
-      cam();E.fog=[60,80,120];E.far=90;
-      bg('#6fb7ff','#d9f0ff');
-      box(0,-.7,35,18,.2,30,[40,110,70]);
-      for(var i=0;i<8;i++){box(-15,1.4,10+i*6,.3,1.4,.3,[120,90,60]);box(15,1.4,10+i*6,.3,1.4,.3,[120,90,60])}
-      box(0,4,64,20,8,.3,[70,60,120],[200,180,255]);
-      tg.forEach(function(o){
-        var X=px(o);
-        if(o.b){sph(X,o.y,o.z,o.r,[30,30,40]);sph(X,o.y+o.r*.9,o.z-.2,.2,[255,60,60])}
-        else{sph(X,o.y,o.z,o.r,[255,255,255]);sph(X,o.y,o.z-.05,o.r*.65,[255,60,80]);sph(X,o.y,o.z-.1,o.r*.3,[255,255,255])}
-      });
-      ps.forEach(function(p){sph(p.x,p.y,p.z,.2,p.b?[60,60,70]:[255,220,60])});
-      flush();
-      g.strokeStyle='#111';g.lineWidth=2;g.beginPath();g.arc(cx,cy,16,0,7);g.moveTo(cx-24,cy);g.lineTo(cx+24,cy);g.moveTo(cx,cy-24);g.lineTo(cx,cy+24);g.stroke();
-      T('Punkte '+sc,16,60,22,'#123','left');T('Zeit '+Math.ceil(tl),W-16,60,24,tl<10?'#d22':'#123','right');
-      T('Klicken oder Leertaste (Fadenkreuz mit WASD). Schieß auf die Scheiben, nicht auf die schwarzen Bomben',W/2,H-10,13,'#123');
-      if(dead){T('ZEIT ABGELAUFEN',W/2,H/2,48,'#123');T(sc+' Punkte · Treffer '+(sh?Math.round(hit/sh*100):0)+' % · Leertaste = nochmal',W/2,H/2+40,20,'#123')}
-    }
-  };
-}
-
-/* ============ 12. ARENA-FLUCHT ============ */
-function arena(){
-  var A=11,px=0,pz=0,dv=0,dc=0,en=[],co=[],sc=0,t=0,dead=0,tt=0;
-  function spw(){var s=R()*4|0,e=(R()-.5)*2*A;en.push({x:s<2?(s?A:-A):e,z:s<2?e:(s==2?A:-A)})}
-  function coin(){co.push({x:(R()-.5)*2*(A-1),z:(R()-.5)*2*(A-1)})}
-  spw();spw();coin();
-  return{
-    kd:function(k){if(dead&&k=='Space'){start('arena');return}if(k=='Space'&&dc<=0){dv=.25;dc=1.6}},
-    pd:function(){if(dead)start('arena')},
-    u:function(dt){
-      tt+=dt;dc-=dt;
-      if(dead)return;
-      t+=dt;
-      var a=arrowK(),sp=8*(dv>0?2.6:1);dv-=dt;
-      if(M.d){var mx=M.x-W/2,mz=-(M.y-H/2),l=Math.hypot(mx,mz);if(l>20){a=[mx/l,mz/l]}}
-      var al=Math.hypot(a[0],a[1]);if(al>1){a=[a[0]/al,a[1]/al]}
-      px=cl(px+a[0]*sp*dt,-A+.6,A-.6);pz=cl(pz+a[1]*sp*dt,-A+.6,A-.6);
-      var es=3.2+Math.min(3,t*.04);
-      en.forEach(function(e){
-        var dx=px-e.x,dz=pz-e.z,d=Math.hypot(dx,dz)||1;e.x+=dx/d*es*dt;e.z+=dz/d*es*dt;
-        if(d<1){if(dv>0){sc+=5;var s=R()*4|0;e.x=s<2?(s?A:-A):(R()-.5)*2*A;e.z=s<2?(R()-.5)*2*A:(s==2?A:-A)}else dead=1}
-      });
-      co=co.filter(function(c){
-        if(Math.hypot(c.x-px,c.z-pz)<1.2){sc++;coin();if(sc%3==0)spw();return false}
-        return true;
-      });
-    },
-    d:function(){
-      E.fog=[10,10,40];E.far=80;E.x=0;E.y=17;E.z=-14;E.yw=0;E.pt=-.9;
-      bg('#0a0a26','#1c1450');
-      for(var i=-5;i<=5;i++)for(var j=-5;j<=5;j++)box(i*2,-.1,j*2,1,.1,1,((i+j)&1)?[44,50,110]:[36,40,92]);
-      var wc=[255,60,160],we=[255,170,220];
-      box(0,.5,A+.3,A+.6,.5,.3,wc,we);box(0,.5,-A-.3,A+.6,.5,.3,wc,we);box(A+.3,.5,0,.3,.5,A,wc,we);box(-A-.3,.5,0,.3,.5,A,wc,we);
-      en.forEach(function(e,i){box(e.x,.55+Math.sin(tt*6+i)*.1,e.z,.5,.5,.5,[255,70,90],[255,200,210])});
-      co.forEach(function(c){sph(c.x,.9+Math.sin(tt*4)*.15,c.z,.4,[255,225,70])});
-      box(px,.6,pz,.55,.55,.55,dv>0?[255,255,255]:[60,220,255],[255,255,255]);
-      flush();
-      g.fillStyle='rgba(255,255,255,.2)';g.fillRect(W/2-60,52,120,8);g.fillStyle=dc<=0?'#6fe08a':'#ffd23b';g.fillRect(W/2-60,52,120*(dc<=0?1:1-dc/1.6),8);
-      T('Münzen '+sc,16,60,22,'#fff','left');T('Zeit '+Math.floor(t)+' s',W-16,60,22,'#fff','right');
-      T('WASD oder Maus gedrückt halten = laufen · Leertaste = Sprint, der Gegner umwirft',W/2,H-10,13,'#889');
-      if(dead){T('ERWISCHT!',W/2,H/2,52,'#ff5a7a');T(sc+' Münzen · Leertaste = nochmal',W/2,H/2+40,20)}
-    }
-  };
-}
-
-/* ============ Hub & Steuerung ============ */
-var GM={tunnel:tunnel,maze:maze,fighter:fighter,zig:zig,snake:snake,stack:stack3,pong3:pong3,helix:helix,hover:hover,aster:aster,gallery:gallery,arena:arena};
-var LIST=[
-  ['tunnel','🌀','Neon-Tunnel','Rase durch einen Tunnel und finde die Lücken','#3df5ff'],
-  ['maze','🧭','Labyrinth-Flucht','Ego-Perspektive: Finde den Ausgang vor Ablauf der Zeit','#7d8bff'],
-  ['fighter','🚀','Star Fighter','3D-Weltraumkampf gegen anfliegende Gegner','#ff5a7a'],
-  ['zig','💎','Zigzag-Himmel','Roll auf dem schwebenden Pfad und wechsel die Richtung','#ff9ad0'],
-  ['snake','🐍','Snake Chase','Snake mit Verfolgerkamera und Abbiegen relativ zur Schlange','#6fe08a'],
-  ['stack','🏗️','Stack 3D','Baue den höchsten Turm, Block für Block','#ffd23b'],
-  ['pong3','🏓','Tunnel-Pong','3D-Pong im Tunnel gegen die CPU','#3df5ff'],
-  ['helix','🌀','Turm-Sturz','Spring den Turm hinunter, ohne die roten Felder zu treffen','#b48bff'],
-  ['hover','🛸','Hover-Straße','Schwebe über Lücken und weiche Blöcken aus','#ff6ad0'],
-  ['aster','☄️','Asteroidenfeld','Flieg durch ein dichtes Feld und sammle Kristalle','#ffa94d'],
-  ['gallery','🎯','Schießbude','Triff die Scheiben in der Tiefe, aber nicht die Bomben','#ff5a5a'],
-  ['arena','🧊','Arena-Flucht','Sammle Münzen, die Würfel jagen dich','#6fe08a']
-];
-var html='';
-LIST.forEach(function(q,i){html+='<button class="card" style="--c:'+q[4]+'" data-k="'+q[0]+'"><i>'+q[1]+'</i><b>'+q[2]+'</b><em>'+(i+1)+'</em><span>'+q[3]+'</span></button>'});
-$('grid').innerHTML=html;
-var cards=document.querySelectorAll('.card');
-for(var ci=0;ci<cards.length;ci++)(function(b){b.onclick=function(){start(b.getAttribute('data-k'))}})(cards[ci]);
-
-function start(n){
-  for(var k in K)K[k]=0;
-  M.d=0;hub.style.display='none';cv.style.display='block';$('back').style.display='block';
-  rs();G=GM[n]();
-}
-function home(){G=null;cv.style.display='none';hub.style.display='flex';$('back').style.display='none'}
-$('back').onclick=home;
-
-var PANIC_URL='https://de.wikipedia.org/wiki/Industrielle_Revolution';
-function panic(){
-  if(fake.style.display=='block'){fake.style.display='none';paused=false;document.title='3D-Arcade';return}
-  try{window.open(PANIC_URL,'_blank')}catch(e){}
-  fake.style.display='block';paused=true;document.title='Referat - Dokumente';
-}
-$('panic').onclick=panic;
-
-addEventListener('keydown',function(e){
-  var k=e.code;
-  if(k=='Digit0'||k=='Numpad0'){panic();return}
-  if(paused)return;
-  if(G&&['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Backspace'].indexOf(k)>=0)e.preventDefault();
-  if(e.repeat)return;
-  K[k]=1;
-  if(!G){var n=parseInt(e.key,10);if(n>=1&&n<=LIST.length)start(LIST[n-1][0]);return}
-  if(k=='Backspace'){home();return}
-  if(G.kd)G.kd(k);
-});
-addEventListener('keyup',function(e){K[e.code]=0});
-addEventListener('blur',function(){for(var k in K)K[k]=0});
-cv.addEventListener('pointerdown',function(e){M.x=e.clientX;M.y=e.clientY;M.d=1;try{window.focus()}catch(x){}if(G&&G.pd)G.pd(e.clientX,e.clientY)});
-addEventListener('pointermove',function(e){M.x=e.clientX;M.y=e.clientY;M.m=1});
-addEventListener('pointerup',function(){M.d=0});
-
-var last=performance.now();
-function loop(t){
-  var dt=Math.min((t-last)/1000,.05);last=t;
-  if(G&&!paused){
-    if(cv.clientWidth&&(W!==cv.clientWidth||H!==cv.clientHeight))rs();
-    G.u(dt);G.d();
-  }
-  requestAnimationFrame(loop);
-}
-requestAnimationFrame(loop);
-window.__arcade={start:start,home:home,GM:GM,LIST:LIST};
-})();
-</script>
-</body>
-</html>
