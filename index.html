@@ -36,6 +36,48 @@ kbd{background:#252a66;border-radius:5px;padding:1px 7px;color:#ffe14d}
 </style>
 </head>
 <body>
+  <div id="lock">
+  <div class="lbox">
+    <div class="lt">🔒 3D-ARCADE</div>
+    <p>Bitte Passwort eingeben</p>
+    <input id="pw" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••">
+    <button id="pwb">Öffnen</button>
+    <div id="pwe"></div>
+  </div>
+</div>
+<style>
+#lock{position:fixed;top:0;left:0;right:0;bottom:0;z-index:100000;background:#080620;display:flex;align-items:center;justify-content:center;font-family:"Trebuchet MS",system-ui,sans-serif;color:#f2f1ff;text-align:center}
+.lbox{padding:24px}
+.lt{font:italic 900 clamp(30px,7vw,56px)/1 Impact,"Arial Black",sans-serif;color:#ffe14d;text-shadow:3px 3px 0 #ff3d8b,6px 6px 0 #3df5ff;margin-bottom:18px}
+#pw{display:block;margin:12px auto;width:200px;padding:12px;font-size:28px;text-align:center;letter-spacing:10px;border-radius:10px;border:2px solid #3df5ff;background:#181b45;color:#fff;outline:none}
+#pwb{padding:11px 28px;font:inherit;font-weight:800;font-size:17px;border:0;border-radius:10px;background:#ffe14d;color:#080620;cursor:pointer}
+#pwe{height:22px;margin-top:12px;color:#ff5a7a;font-weight:700}
+.shake{animation:sh .35s}
+@keyframes sh{20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+</style>
+<script>
+(function(){
+  var lock=document.getElementById('lock'),pw=document.getElementById('pw'),err=document.getElementById('pwe'),box=lock.firstElementChild,CODE='0101';
+  function openIt(){lock.style.display='none';window.__locked=false;try{sessionStorage.setItem('arcade_ok','1')}catch(e){}}
+  function check(){
+    if(pw.value===CODE){openIt();return}
+    err.textContent='Falsches Passwort';pw.value='';
+    box.classList.remove('shake');void box.offsetWidth;box.classList.add('shake');
+  }
+  var ok=false;try{ok=sessionStorage.getItem('arcade_ok')=='1'}catch(e){}
+  if(ok){lock.style.display='none';return}
+  window.__locked=true;
+  addEventListener('keydown',function(e){
+    if(!window.__locked)return;
+    e.stopImmediatePropagation();
+    if(e.key==='Enter')check();
+  },true);
+  addEventListener('keyup',function(e){if(window.__locked)e.stopImmediatePropagation()},true);
+  pw.addEventListener('input',function(){err.textContent='';if(pw.value.length>=4)check()});
+  document.getElementById('pwb').onclick=check;
+  setTimeout(function(){pw.focus()},50);
+})();
+</script>
 <div id="hub">
   <h1>3D-ARCADE</h1>
   <p class="sub">12 originale Spiele mit eigener 3D-Engine. Such dir eins aus.</p>
