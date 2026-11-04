@@ -78,6 +78,68 @@ kbd{background:#252a66;border-radius:5px;padding:1px 7px;color:#ffe14d}
   setTimeout(function(){pw.focus()},50);
 })();
 </script>
+  <div id="lk2">
+  <div class="k2box">
+    <div class="k2t">🔒 3D-ARCADE</div>
+    <div class="k2p">Passwort eingeben</div>
+    <div id="k2d"></div>
+    <div id="k2pad"></div>
+    <div id="k2e"></div>
+  </div>
+</div>
+<style>
+#lk2{position:fixed;top:0;left:0;right:0;bottom:0;z-index:2147483000;background:#080620;display:flex;align-items:center;justify-content:center;font-family:"Trebuchet MS",system-ui,sans-serif;color:#f2f1ff;text-align:center;overflow:auto}
+.k2box{padding:20px}
+.k2t{font:italic 900 clamp(30px,7vw,52px)/1 Impact,"Arial Black",sans-serif;color:#ffe14d;text-shadow:3px 3px 0 #ff3d8b,6px 6px 0 #3df5ff;margin-bottom:14px}
+.k2p{color:#9aa0d8;margin-bottom:10px}
+#k2d{font-size:34px;letter-spacing:12px;margin:10px 0 14px;color:#3df5ff}
+#k2pad{display:grid;grid-template-columns:repeat(3,76px);gap:10px;justify-content:center}
+#k2pad button{height:62px;font:inherit;font-weight:800;font-size:26px;border-radius:12px;background:#181b45;color:#fff;cursor:pointer;border:2px solid #3df5ff}
+#k2pad button:active{background:#3df5ff;color:#080620}
+#k2e{height:24px;margin-top:12px;color:#ff5a7a;font-weight:700}
+.k2s{animation:k2 .35s}
+@keyframes k2{20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+</style>
+<script>
+(function(){
+  var o=document.getElementById('lock');if(o)o.parentNode.removeChild(o);
+  window.__locked=false;
+  var L=document.getElementById('lk2'),D=document.getElementById('k2d'),E=document.getElementById('k2e'),B=L.firstElementChild,CODE='0101',cur='',locked=true;
+  try{if(sessionStorage.getItem('arcade_ok2')=='1'){L.style.display='none';locked=false}}catch(e){}
+  function show(){var s='';for(var i=0;i<4;i++)s+=(i<cur.length?'●':'○')+(i<3?' ':'');D.textContent=s}
+  function add(c){
+    if(!locked)return;
+    E.textContent='';
+    if(cur.length<4)cur+=c;
+    show();
+    if(cur.length==4)setTimeout(function(){
+      if(cur===CODE){locked=false;L.style.display='none';try{sessionStorage.setItem('arcade_ok2','1')}catch(e){}}
+      else{E.textContent='Falsches Passwort';cur='';show();B.classList.remove('k2s');void B.offsetWidth;B.classList.add('k2s')}
+    },120);
+  }
+  function del(){cur=cur.slice(0,-1);show()}
+  var P=document.getElementById('k2pad'),keys=['1','2','3','4','5','6','7','8','9','⌫','0',''];
+  keys.forEach(function(k){
+    var b=document.createElement('button');b.textContent=k;
+    if(!k){b.style.visibility='hidden'}else{b.onclick=function(){if(k=='⌫')del();else add(k)}}
+    P.appendChild(b);
+  });
+  show();
+  window.addEventListener('keydown',function(e){
+    if(!locked)return;
+    e.stopImmediatePropagation();e.preventDefault();
+    if(/^[0-9]$/.test(e.key))add(e.key);else if(e.key==='Backspace')del();
+  },true);
+  window.addEventListener('keyup',function(e){if(locked)e.stopImmediatePropagation()},true);
+  /* Zurück vom Fake-Referat: zweimal schnell tippen oder klicken */
+  var lt=0;
+  window.addEventListener('pointerup',function(e){
+    var t=e.target;if(!t||!t.closest||!t.closest('#fake'))return;
+    var n=Date.now();
+    if(n-lt<450){window.dispatchEvent(new KeyboardEvent('keydown',{code:'Digit0',key:'0'}));lt=0}else lt=n;
+  });
+})();
+</script>
 <div id="hub">
   <h1>3D-ARCADE</h1>
   <p class="sub">12 originale Spiele mit eigener 3D-Engine. Such dir eins aus.</p>
@@ -96,7 +158,6 @@ kbd{background:#252a66;border-radius:5px;padding:1px 7px;color:#ffe14d}
     <p>3. Folgen<br>Städte wuchsen rasant, es entstand eine Arbeiterklasse, und soziale Fragen rückten in den Mittelpunkt der politischen Debatte.</p>
   </div>
 </div>
-
 <script>
 window.onerror=function(m,s,l){
   var d=document.getElementById('err');
