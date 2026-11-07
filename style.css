@@ -68,3 +68,24 @@ main{position:relative;z-index:1}
 @keyframes bob{50%{transform:translateY(-6px) rotate(3deg)}}
 @keyframes ovIn{from{opacity:0;transform:scale(.98)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ===== Version 3 ===== */
+.tip{margin:10px 0 0;font-size:13.5px;color:var(--muted);line-height:1.45}
+.newrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:2px 0 14px}
+.chip{border:1px solid var(--line);background:rgba(255,255,255,.04);border-radius:999px;padding:6px 12px;font-size:13px;transition:.2s}.chip:hover{border-color:var(--accent);transform:translateY(-2px)}
+.new{position:absolute;top:8px;left:9px;font-style:normal;font-size:10px;font-weight:900;letter-spacing:.5px;background:var(--accent);color:#14200c;padding:3px 7px;border-radius:7px;z-index:1;animation:pulse 2.2s ease-in-out infinite}
+.star+.new{left:34px}
+@keyframes pulse{50%{box-shadow:0 0 14px var(--accent)}}
+.widgets{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.wd.wide{grid-column:span 2}
+@media(max-width:560px){.wd.wide{grid-column:span 1}}
+.hrs{display:flex;gap:8px;overflow:auto}
+.hr{flex:1;min-width:52px;text-align:center;background:rgba(255,255,255,.04);border-radius:12px;padding:8px 4px}
+.hr b{display:block;font-size:11px;color:var(--muted)}.hr span{display:block;font-size:22px;margin:2px 0}.hr em{display:block;font-style:normal;font-weight:800}.hr small{color:#7fb8ff;font-size:10px}
+.xpt{font-size:13px;font-weight:700;margin-bottom:6px}
+.xpb{height:8px;background:rgba(255,255,255,.08);border-radius:8px;overflow:hidden;margin-bottom:6px}.xpb i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),#fff);border-radius:8px;transition:width .8s}
+.wk{display:flex;gap:6px;align-items:flex-end;height:88px}
+.bar1{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px}
+.bar1 i{display:block;width:100%;background:linear-gradient(var(--accent),rgba(255,255,255,.25));border-radius:6px 6px 2px 2px;transition:height .8s}
+.bar1 span{font-size:10px;color:var(--muted)}
+.topg{line-height:1.8;font-size:13px}.topg b{color:var(--accent)}

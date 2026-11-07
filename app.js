@@ -1,12 +1,12 @@
 const catalog=[
-{id:'snake',name:'Snake',cat:'Arcade',emoji:'🐍',desc:'Sammle Punkte und wachse.',colors:['#174d39','#1d8a55']},
-{id:'pong',name:'Pong',cat:'Arcade',emoji:'🏓',desc:'Halte den Ball im Spiel.',colors:['#183a55','#246b91']},
-{id:'breakout',name:'Brick Breaker',cat:'Arcade',emoji:'🧱',desc:'Zerstöre alle Blöcke.',colors:['#56305f','#a34d77']},
-{id:'memory',name:'Memory',cat:'Puzzle',emoji:'🧠',desc:'Finde alle Kartenpaare.',colors:['#514020','#a17b36']},
-{id:'2048',name:'2048',cat:'Puzzle',emoji:'🔢',desc:'Verbinde gleiche Zahlen.',colors:['#59432b','#a77b42']},
-{id:'tictactoe',name:'Tic Tac Toe',cat:'Puzzle',emoji:'⭕',desc:'Drei in eine Reihe.',colors:['#253d64','#436db0']},
-{id:'reaction',name:'Reaktionstest',cat:'Geschick',emoji:'⚡',desc:'Reagiere so schnell du kannst.',colors:['#4b294e','#8e4b8e']},
-{id:'clicker',name:'Stern-Klicker',cat:'Geschick',emoji:'⭐',desc:'Sammle Sterne in 20 Sekunden.',colors:['#51431d','#a98b32']},
+{id:'snake',name:'Snake',cat:'Arcade',emoji:'🐍',desc:'Sammle Punkte und wachse.',colors:['#174d39','#1d8a55'],retro:true},
+{id:'pong',name:'Pong',cat:'Arcade',emoji:'🏓',desc:'Halte den Ball im Spiel.',colors:['#183a55','#246b91'],retro:true},
+{id:'breakout',name:'Brick Breaker',cat:'Arcade',emoji:'🧱',desc:'Zerstöre alle Blöcke.',colors:['#56305f','#a34d77'],retro:true},
+{id:'memory',name:'Memory',cat:'Puzzle',emoji:'🧠',desc:'Finde alle Kartenpaare.',colors:['#514020','#a17b36'],retro:true},
+{id:'2048',name:'2048',cat:'Puzzle',emoji:'🔢',desc:'Verbinde gleiche Zahlen.',colors:['#59432b','#a77b42'],retro:true},
+{id:'tictactoe',name:'Tic Tac Toe',cat:'Puzzle',emoji:'⭕',desc:'Drei in eine Reihe.',colors:['#253d64','#436db0'],retro:true},
+{id:'reaction',name:'Reaktionstest',cat:'Geschick',emoji:'⚡',desc:'Reagiere so schnell du kannst.',colors:['#4b294e','#8e4b8e'],retro:true},
+{id:'clicker',name:'Stern-Klicker',cat:'Geschick',emoji:'⭐',desc:'Sammle Sterne in 20 Sekunden.',colors:['#51431d','#a98b32'],retro:true},
 {id:'d-tunnel',name:'Neon-Tunnel',cat:'3D',tags:['3D', 'Action'],emoji:'🌀',desc:'Rase durch Neon-Lücken.',colors:['#12335a','#2a8fd0'],src:'a3d',start:'tunnel'},
 {id:'d-maze',name:'Labyrinth-Flucht',cat:'3D',tags:['3D', 'Puzzle'],emoji:'🧭',desc:'Finde den Ausgang in 3D.',colors:['#2a2f66','#5560c8'],src:'a3d',start:'maze'},
 {id:'d-fighter',name:'Star Fighter',cat:'3D',tags:['3D', 'Action'],emoji:'🚀',desc:'Weltraumkampf in 3D.',colors:['#4a1a2c','#b03a5a'],src:'a3d',start:'fighter'},
@@ -18,30 +18,35 @@ const catalog=[
 {id:'d-hover',name:'Hover-Straße',cat:'3D',tags:['3D', 'Rennen'],emoji:'🛸',desc:'Schwebe über Lücken.',colors:['#4a2060','#b050c8'],src:'a3d',start:'hover'},
 {id:'d-aster',name:'Asteroidenfeld',cat:'3D',tags:['3D', 'Action'],emoji:'☄️',desc:'Weich den Felsen aus.',colors:['#4a3018','#c07a38'],src:'a3d',start:'aster'},
 {id:'d-gallery',name:'Schießbude',cat:'3D',tags:['3D', 'Geschick'],emoji:'🎯',desc:'Triff Scheiben, keine Bomben.',colors:['#5a2020','#c04848'],src:'a3d',start:'gallery'},
+{id:'d-cuberush',name:'Cube Rush',cat:'3D',tags:['3D', 'Action'],emoji:'🧊',desc:'3D-Runner: Spur, Sprung, Rutschen.',colors:['#5a1a4a','#d0508a'],src:'a3d',start:'cuberush',isNew:true},
+{id:'d-highway',name:'Highway',cat:'3D',tags:['3D', 'Rennen'],emoji:'🚗',desc:'Gegenverkehr im Dunkeln.',colors:['#3a2a14','#c08a3a'],src:'a3d',start:'highway',isNew:true},
+{id:'d-dash3',name:'Dash 3D',cat:'3D',tags:['3D', 'Action'],emoji:'🔷',desc:'Stacheln, Blöcke und Lücken.',colors:['#4a4a1a','#c8c83a'],src:'a3d',start:'dash3',isNew:true},
+{id:'d-gaterun',name:'Tor-Lauf',cat:'3D',tags:['3D', 'Action'],emoji:'💰',desc:'Wähle das bessere Tor.',colors:['#1a4a2a','#3ab05a'],src:'a3d',start:'gaterun',isNew:true},
+{id:'d-golf',name:'Minigolf 3D',cat:'3D',tags:['3D', 'Sport'],emoji:'⛳',desc:'3 Bahnen mit Hindernissen.',colors:['#1a4a2a','#4ab05a'],src:'a3d',start:'golf',isNew:true},
+{id:'d-hoops',name:'Basketball 3D',cat:'3D',tags:['3D', 'Sport'],emoji:'🏀',desc:'Triff den Korb mit Timing.',colors:['#5a3010','#d0782a'],src:'a3d',start:'hoops',isNew:true},
+{id:'d-skyjump',name:'Sky Jump 3D',cat:'3D',tags:['3D', 'Geschick'],emoji:'☁️',desc:'Hüpf immer weiter nach oben.',colors:['#1a3a6a','#5a9ae0'],src:'a3d',start:'skyjump',isNew:true},
+{id:'d-whack',name:'Maulwurf-Jagd',cat:'3D',tags:['3D', 'Geschick'],emoji:'🔨',desc:'Treffe Maulwürfe, keine Bomben.',colors:['#4a3018','#b08050'],src:'a3d',start:'whack',isNew:true},
+{id:'d-bowling',name:'Bowling 3D',cat:'3D',tags:['3D', 'Sport'],emoji:'🎳',desc:'5 Frames mit Effet.',colors:['#2a1a5a','#7a5ad0'],src:'a3d',start:'bowling',isNew:true},
 {id:'d-arena',name:'Arena-Flucht',cat:'3D',tags:['3D', 'Action'],emoji:'🧊',desc:'Münzen sammeln, Würfeln entkommen.',colors:['#1a4a30','#3aa86a'],src:'a3d',start:'arena'},
 {id:'poly',name:'Poly Rush',cat:'Rennen',tags:['Rennen', '3D'],emoji:'🏁',desc:'Low-Poly-Zeitfahren auf 3 Strecken.',colors:['#4a2418','#d0643a'],src:'poly'},
-{id:'p-cookie',name:'Keks-Klicker',cat:'Geschick',tags:['Geschick'],emoji:'🍪',desc:'Klick den Keks, kauf Upgrades.',colors:['#5a3a1a','#c48a3a'],src:'pa',start:'cookie'},
-{id:'p-space',name:'Star Blaster',cat:'Action',tags:['Action'],emoji:'🛰️',desc:'Space Shooter mit Wellen.',colors:['#1a2a5a','#4a6ad0'],src:'pa',start:'space'},
-{id:'p-gates',name:'Geld-Lauf',cat:'Action',tags:['Action'],emoji:'💰',desc:'Wähle x2 und meide -100.',colors:['#1a4a2a','#3ab05a'],src:'pa',start:'gates'},
-{id:'p-sub',name:'Gleis-Läufer',cat:'Action',tags:['Action'],emoji:'🏃',desc:'Spur wechseln und springen.',colors:['#5a2a2a','#d05a5a'],src:'pa',start:'sub'},
-{id:'p-wheelie',name:'Wheelie King',cat:'Rennen',tags:['Rennen'],emoji:'🏍️',desc:'Balanciere auf dem Hinterrad.',colors:['#5a4a1a','#d0b03a'],src:'pa',start:'wheelie'},
-{id:'p-race',name:'Speed Track',cat:'Rennen',tags:['Rennen'],emoji:'🏎️',desc:'Rennen gegen die Zeit.',colors:['#1a4a5a','#3ab0d0'],src:'pa',start:'race'},
-{id:'p-stack',name:'Turm-Stapler',cat:'Geschick',tags:['Geschick'],emoji:'🧱',desc:'Block für Block nach oben.',colors:['#5a2a4a','#c85aa8'],src:'pa',start:'stack'},
-{id:'p-paper',name:'Gebietsjagd',cat:'Arcade',tags:['Arcade'],emoji:'📄',desc:'Erobere Fläche, meide Rot.',colors:['#1a3a5a','#4a8ad0'],src:'pa',start:'paper'},
-{id:'p-hook',name:'Haken-Schwung',cat:'Geschick',tags:['Geschick'],emoji:'🪝',desc:'Schwing dich von Haken zu Haken.',colors:['#5a3a1a','#d0802a'],src:'pa',start:'hook'},
-{id:'p-blast',name:'Block-Puzzle',cat:'Puzzle',tags:['Puzzle'],emoji:'🟦',desc:'Teile setzen, Reihen löschen.',colors:['#1a2a5a','#4a5ad0'],src:'pa',start:'blast'},
-{id:'p-dash',name:'Würfel-Dash',cat:'Action',tags:['Action'],emoji:'🔷',desc:'Spring über Stacheln.',colors:['#4a4a1a','#c8c83a'],src:'pa',start:'dash'},
-{id:'p-hwy',name:'Geisterfahrer',cat:'Rennen',tags:['Rennen'],emoji:'🚗',desc:'Gegen den Verkehr, immer schneller.',colors:['#1a3a4a','#3a90b0'],src:'pa',start:'hwy'},
-{id:'ns',name:'Neon Survivor',cat:'Action',tags:['Action'],emoji:'💥',desc:'Überlebe die Neon-Horde.',colors:['#3a1a4a','#a03ad0'],src:'ns'},
-{id:'tk',name:'Turbo Kick',cat:'Sport',tags:['Sport'],emoji:'⚽',desc:'4 gegen 4, mit 2-Spieler-Modus.',colors:['#1a4a2a','#3aa84a'],src:'tk'}
+{id:'p-cookie',name:'Keks-Klicker',cat:'Geschick',tags:['Geschick'],emoji:'🍪',desc:'Klick den Keks, kauf Upgrades.',colors:['#5a3a1a','#c48a3a'],src:'pa',start:'cookie',retro:true},
+{id:'p-space',name:'Star Blaster',cat:'Action',tags:['Action'],emoji:'🛰️',desc:'Space Shooter mit Wellen.',colors:['#1a2a5a','#4a6ad0'],src:'pa',start:'space',retro:true},
+{id:'p-wheelie',name:'Wheelie King',cat:'Rennen',tags:['Rennen'],emoji:'🏍️',desc:'Balanciere auf dem Hinterrad.',colors:['#5a4a1a','#d0b03a'],src:'pa',start:'wheelie',retro:true},
+{id:'p-race',name:'Speed Track',cat:'Rennen',tags:['Rennen'],emoji:'🏎️',desc:'Rennen gegen die Zeit.',colors:['#1a4a5a','#3ab0d0'],src:'pa',start:'race',retro:true},
+{id:'p-stack',name:'Turm-Stapler',cat:'Geschick',tags:['Geschick'],emoji:'🧱',desc:'Block für Block nach oben.',colors:['#5a2a4a','#c85aa8'],src:'pa',start:'stack',retro:true},
+{id:'p-paper',name:'Gebietsjagd',cat:'Arcade',tags:['Arcade'],emoji:'📄',desc:'Erobere Fläche, meide Rot.',colors:['#1a3a5a','#4a8ad0'],src:'pa',start:'paper',retro:true},
+{id:'p-hook',name:'Haken-Schwung',cat:'Geschick',tags:['Geschick'],emoji:'🪝',desc:'Schwing dich von Haken zu Haken.',colors:['#5a3a1a','#d0802a'],src:'pa',start:'hook',retro:true},
+{id:'p-blast',name:'Block-Puzzle',cat:'Puzzle',tags:['Puzzle'],emoji:'🟦',desc:'Teile setzen, Reihen löschen.',colors:['#1a2a5a','#4a5ad0'],src:'pa',start:'blast',retro:true},
+{id:'ns',name:'Neon Survivor',cat:'Action',tags:['Action'],emoji:'💥',desc:'Überlebe die Neon-Horde.',colors:['#3a1a4a','#a03ad0'],src:'ns',retro:true},
+{id:'tk',name:'Turbo Kick',cat:'Sport',tags:['Sport'],emoji:'⚽',desc:'4 gegen 4, mit 2-Spieler-Modus.',colors:['#1a4a2a','#3aa84a'],src:'tk',retro:true}
 ];
 const $=s=>document.querySelector(s), store=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}, load=k=>{try{return JSON.parse(localStorage.getItem(k)||'[]')}catch{return[]}};
 let category='Alle',favorites=load('pp-favs'),recent=load('pp-recent'),favMode=false,current=null;
-const cats=['Alle','3D','Rennen','Action','Arcade','Puzzle','Geschick','Sport','Favoriten'];
+const cats=['Alle','3D','Retro','Rennen','Action','Arcade','Puzzle','Geschick','Sport','Favoriten'];
 function renderTabs(){var n=c=>c==='Alle'?catalog.length:c==='Favoriten'?favorites.length:catalog.filter(g=>tagsOf(g).includes(c)).length;$('#tabs').innerHTML=cats.map(c=>`<button class="tab ${category===c?'active':''}" data-cat="${c}">${c} <em>${n(c)}</em></button>`).join('')}
-function tagsOf(g){return g.tags||[g.cat]}
+function tagsOf(g){var t=g.tags||[g.cat];return g.retro?t.concat('Retro'):t}
 function fmtRec(g){var v=BEST[g.id];return v===undefined?'':`<i class="rec">🏆 ${v}${UNIT[g.id]||''}</i>`}
-function card(g,i){var d=dailyGame().id===g.id;return `<article class="game${d?' daily':''}" style="--i:${Math.min(i||0,24)}"><div class="art" style="--c1:${g.colors[0]};--c2:${g.colors[1]}"><span class="em">${g.emoji}</span>${d?'<i class="star">⭐</i>':''}${fmtRec(g)}<small>${tagsOf(g).join(' · ')}</small></div><div class="gbody"><div class="gtitle">${g.name}</div><div class="gmeta">${g.desc}</div><div class="gfoot"><button class="play" data-play="${g.id}">Spielen</button><button class="fav ${favorites.includes(g.id)?'on':''}" data-fav="${g.id}" aria-label="Favorit">${favorites.includes(g.id)?'★':'☆'}</button></div></div></article>`}
+function card(g,i){var d=dailyGame().id===g.id;return `<article class="game${d?' daily':''}" style="--i:${Math.min(i||0,24)}"><div class="art" style="--c1:${g.colors[0]};--c2:${g.colors[1]}"><span class="em">${g.emoji}</span>${d?'<i class="star">⭐</i>':''}${g.isNew?'<i class="new">NEU</i>':''}${fmtRec(g)}<small>${tagsOf(g).join(' · ')}</small></div><div class="gbody"><div class="gtitle">${g.name}</div><div class="gmeta">${g.desc}</div><div class="gfoot"><button class="play" data-play="${g.id}">Spielen</button><button class="fav ${favorites.includes(g.id)?'on':''}" data-fav="${g.id}" aria-label="Favorit">${favorites.includes(g.id)?'★':'☆'}</button></div></div></article>`}
 function render(){
  const q=$('#search').value.trim().toLowerCase();
  let items=catalog.filter(g=>(category==='Alle'||tagsOf(g).includes(category)||(category==='Favoriten'&&favorites.includes(g.id)))&&(!favMode||favorites.includes(g.id))&&(g.name+' '+g.desc+' '+tagsOf(g).join(' ')).toLowerCase().includes(q));
@@ -115,7 +120,21 @@ var BEST=jget('pp-best',{}),STATS=jget('pp-stats',{tot:0,day:{},plays:{}}),playS
 function rec(id,v,low){if(typeof v!=='number')return;var o=BEST[id];if(o===undefined||(low?v<o:v>o)){BEST[id]=v;jset('pp-best',BEST)}}
 function today(){return new Date().toLocaleDateString('sv-SE',{timeZone:ZONE})}
 function dailyGame(){var s=today(),h=0;for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return catalog[h%catalog.length]}
-function drawStats(){var m=function(s){return Math.round(s/60)};$('#stToday').textContent=m(STATS.day[today()]||0);$('#stTotal').textContent=m(STATS.tot);$('#stGames').textContent=Object.keys(STATS.plays).length}
+function drawStats(){
+  var m=function(s){return Math.round(s/60)};
+  $('#stToday').textContent=m(STATS.day[today()]||0);$('#stTotal').textContent=m(STATS.tot);$('#stGames').textContent=Object.keys(STATS.plays).length;
+  var plays=0;for(var k in STATS.plays)plays+=STATS.plays[k];
+  var xp=Math.round(STATS.tot/6)+plays*5+Object.keys(BEST).length*25,lv=Math.floor(Math.sqrt(xp/25))+1,a=25*(lv-1)*(lv-1),b=25*lv*lv,TT=['Neuling','Spieler','Zocker','Profi','Meister','Legende'];
+  $('#xpt').textContent='Level '+lv+' · '+TT[Math.min(5,Math.floor((lv-1)/2))]+' · '+xp+' XP';$('#xpf').style.width=Math.round((xp-a)/(b-a)*100)+'%';
+  var bars='',mx=5,vals=[],i;
+  for(i=6;i>=0;i--){var dt=new Date(Date.now()-i*864e5),key=dt.toLocaleDateString('sv-SE',{timeZone:ZONE}),mi=m(STATS.day[key]||0);vals.push([dt.toLocaleDateString('de-CH',{weekday:'short',timeZone:ZONE}).slice(0,2),mi]);mx=Math.max(mx,mi)}
+  vals.forEach(function(v){bars+='<div class="bar1" title="'+v[1]+' Min."><i style="height:'+Math.max(4,Math.round(v[1]/mx*100))+'%"></i><span>'+v[0]+'</span></div>'});
+  $('#wk').innerHTML=bars;
+  var top=Object.keys(STATS.plays).sort(function(x,y){return STATS.plays[y]-STATS.plays[x]}).slice(0,3).map(function(id){var g=catalog.find(function(c){return c.id===id});return g?g.emoji+' '+g.name+' <b>×'+STATS.plays[id]+'</b>':''}).filter(Boolean);
+  $('#topg').innerHTML=top.length?top.join('<br>'):'Spiel etwas, dann erscheinen hier deine Favoriten.';
+}
+function isoWeek(d){var t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())),n=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-n);var y0=new Date(Date.UTC(t.getUTCFullYear(),0,1));return Math.ceil(((t-y0)/864e5+1)/7)}
+function dayLen(a,b){var m=(parseInt(b.slice(11,13),10)*60+parseInt(b.slice(14,16),10))-(parseInt(a.slice(11,13),10)*60+parseInt(a.slice(14,16),10));return Math.floor(m/60)+' h '+(m%60)+' min'}
 function endPlay(){if(!playStart)return;var s=Math.round((Date.now()-playStart)/1000);playStart=0;if(s<2)return;STATS.tot+=s;var t=today();STATS.day[t]=(STATS.day[t]||0)+s;jset('pp-stats',STATS);drawStats()}
 
 /* Uhr, Datum, Begrüssung, Wochenende */
@@ -127,6 +146,7 @@ function tick(){
   $('#hello').textContent=(h<5?'Gute Nacht':h<11?'Guten Morgen':h<17?'Guten Tag':h<22?'Guten Abend':'Gute Nacht')+' 👋';
   var d=new Date(n.toLocaleString('en-US',{timeZone:ZONE})).getDay();
   $('#weekend').textContent=(d==0||d==6)?'Wochenende! 🎉':(d==5?'Morgen ist Wochenende':'Noch '+(6-d)+' Tage bis zum Wochenende');
+  var L=new Date(n.toLocaleString('en-US',{timeZone:ZONE}));$('#kw').textContent='KW '+isoWeek(L)+' · Tag '+Math.floor((L-new Date(L.getFullYear(),0,0))/864e5)+' des Jahres';
 }
 
 /* Wetter Gossau ZH (Open-Meteo, ohne Schlüssel) */
@@ -135,9 +155,20 @@ function showWx(d){
   var c=d.current_weather,dl=d.daily,i=wxInfo(c.weathercode,c.is_day);
   $('#wxi').textContent=i[0];$('#wxt').textContent=Math.round(c.temperature)+'°C';
   $('#wxd').textContent=i[1]+' · Hoch '+Math.round(dl.temperature_2m_max[0])+'° / Tief '+Math.round(dl.temperature_2m_min[0])+'°';
-  $('#wxs').textContent='Wind '+Math.round(c.windspeed)+' km/h · ↑ '+dl.sunrise[0].slice(11,16)+'  ↓ '+dl.sunset[0].slice(11,16);
+  $('#wxs').textContent='Wind '+Math.round(c.windspeed)+' km/h · ↑ '+dl.sunrise[0].slice(11,16)+'  ↓ '+dl.sunset[0].slice(11,16)+' · Tag '+dayLen(dl.sunrise[0],dl.sunset[0]);
 }
-function loadWx(){
+function showHours(d){
+  var h=d.hourly,key=today()+'T'+new Intl.DateTimeFormat('de-CH',{timeZone:ZONE,hour:'2-digit',hour12:false}).format(new Date()).slice(0,2)+':00',i=h.time.indexOf(key);if(i<0)i=0;
+  var o='';for(var k=i+1;k<=i+6&&k<h.time.length;k++){var w=wxInfo(h.weather_code[k],1);o+='<div class="hr"><b>'+h.time[k].slice(11,16)+'</b><span>'+w[0]+'</span><em>'+Math.round(h.temperature_2m[k])+'°</em><small>'+(h.precipitation_probability?h.precipitation_probability[k]:0)+'%</small></div>'}
+  $('#hrs').innerHTML=o;
+}
+function loadHours(){
+  var c=jget('pp-hrs',null);if(c){try{showHours(c.d)}catch(e){}}
+  if(c&&Date.now()-c.t<9e5)return;
+  fetch('https://api.open-meteo.com/v1/forecast?latitude='+LAT+'&longitude='+LON+'&hourly=temperature_2m,precipitation_probability,weather_code&forecast_days=2&timezone=Europe%2FZurich')
+   .then(function(r){return r.json()}).then(function(d){showHours(d);jset('pp-hrs',{t:Date.now(),d:d})}).catch(function(){if(!c)$('#hrs').textContent='Keine Stundenwerte verfügbar'});
+}
+function loadWx(){loadHours();
   var c=jget('pp-wx',null);if(c){try{showWx(c.d)}catch(e){}}
   if(c&&Date.now()-c.t<9e5)return;
   fetch('https://api.open-meteo.com/v1/forecast?latitude='+LAT+'&longitude='+LON+'&current_weather=true&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset&timezone=Europe%2FZurich')
@@ -189,7 +220,11 @@ $('#fs').onclick=function(){var o=$('#overlay');(o.requestFullscreen||o.webkitRe
 addEventListener('keydown',function(e){if(e.key==='/'&&!/INPUT|TEXTAREA/.test((e.target||{}).tagName||'')&&!__locked){e.preventDefault();$('#search').focus()}});
 drawStats();tick();setInterval(tick,1000);loadWx();setInterval(loadWx,9e5);bgSet();
 
-$('#heroP').textContent=catalog.length+' Spiele: Klassiker, 2D-Action, 3D-Spiele und Rennen. Direkt spielbar, ohne Installation.';
+var n3=catalog.filter(function(g){return tagsOf(g).indexOf('3D')>=0}).length;
+$('#heroP').textContent=catalog.length+' Spiele: '+n3+' in 3D und '+catalog.filter(function(g){return g.retro}).length+' Retro-Klassiker. Direkt spielbar, ohne Installation.';
+var TIPS=['Mit P pausierst du jedes Spiel, es pausiert auch von selbst, wenn du woanders klickst.','Die Taste 0 ist dein Panic-Knopf. Mit zweimal Tippen kommst du zurück.','Mit / springst du direkt ins Suchfeld.','Beim Basketball zählt das Timing: Wirf, wenn der Balken im grünen Bereich ist.','Beim Bowling kannst du den Ball mit A und D noch in der Kurve lenken.','Im Neon-Tunnel hilft es, schon früh auf die Lücke zuzusteuern.','Bei Dash 3D kannst du auf den orangen Blöcken landen, nicht nur drüber springen.','Wähle oben rechts über das Zahnrad deine Lieblingsfarbe.','Beim Minigolf reicht oft ein Schlag mit etwa 70 % Kraft.','Sammle Rekorde 🏆, sie geben dir extra XP für dein Level.'];
+$('#tip').textContent='💡 '+TIPS[Math.floor(Date.now()/864e5)%TIPS.length];
+$('#newrow').innerHTML='<span class="muted">Neu:</span> '+catalog.filter(function(g){return g.isNew}).map(function(g){return '<button class="chip" data-play="'+g.id+'">'+g.emoji+' '+g.name+'</button>'}).join('');
 renderTabs();render();
 
 var __paused=false,__locked=true;

@@ -28,19 +28,24 @@
       <p class="hello" id="hello">Hallo 👋</p>
       <h1>Dein nächstes Spiel wartet.</h1>
       <p id="heroP"></p>
+      <p class="tip" id="tip"></p>
       <div class="cta"><button class="bigbtn" id="randomBtn">🎲 Zufallsspiel</button><button class="ghost" id="dailyBtn">⭐ Spiel des Tages</button></div>
     </div>
     <div class="widgets">
-      <div class="wd"><div class="wl">Zürich</div><div class="clock" id="clock">--:--:--</div><div class="wsub" id="date"></div><div class="wsub" id="weekend"></div></div>
+      <div class="wd"><div class="wl">Zürich</div><div class="clock" id="clock">--:--:--</div><div class="wsub" id="date"></div><div class="wsub" id="weekend"></div><div class="wsub" id="kw"></div></div>
       <div class="wd"><div class="wl">Gossau ZH</div><div class="wx"><span class="wxi" id="wxi">⏳</span><span class="wxt" id="wxt">–</span></div><div class="wsub" id="wxd">Wetter wird geladen …</div><div class="wsub" id="wxs"></div></div>
-      <div class="wd"><div class="wl">Deine Statistik</div><div class="stat"><b id="stToday">0</b><span>Min. heute</span></div><div class="stat"><b id="stTotal">0</b><span>Min. gesamt</span></div><div class="stat"><b id="stGames">0</b><span>Spiele probiert</span></div></div>
+      <div class="wd wide"><div class="wl">Nächste Stunden</div><div class="hrs" id="hrs">…</div></div>
+      <div class="wd"><div class="wl">Dein Fortschritt</div><div class="xpt" id="xpt"></div><div class="xpb"><i id="xpf"></i></div><div class="stat"><b id="stToday">0</b><span>Min. heute</span></div><div class="stat"><b id="stTotal">0</b><span>Min. gesamt</span></div><div class="stat"><b id="stGames">0</b><span>Spiele probiert</span></div></div>
+      <div class="wd"><div class="wl">Letzte 7 Tage</div><div class="wk" id="wk"></div></div>
+      <div class="wd"><div class="wl">Deine Top-Spiele</div><div class="wsub topg" id="topg"></div></div>
     </div>
   </section>
+  <div class="newrow" id="newrow"></div>
   <nav class="tabs" id="tabs"></nav>
   <div id="recentBox"></div>
   <div class="sectionhead"><h2 id="heading">Alle Spiele</h2><span class="muted" id="count"></span></div>
   <div class="grid" id="games"></div>
-  <div class="footer">PixelPlay · alle Spiele laufen direkt im Browser · Wetter von Open-Meteo.com</div>
+  <div class="footer">PixelPlay · alle Spiele laufen direkt im Browser · Wetter von Open-Meteo.com<br>Tasten: <b>/</b> Suche · <b>P</b> Pause · <b>0</b> Panic · <b>Backspace</b> Spiel schließen</div>
 </main>
 <div id="fake"><div class="bar"><b>Dokumente</b> &nbsp; Referat_Industrielle_Revolution.docx &nbsp; Datei Bearbeiten Ansicht Einfügen</div><div class="page"><h3>Die Industrielle Revolution</h3><p>1. Einleitung<br>Die Industrielle Revolution begann im 18. Jahrhundert in Großbritannien und veränderte die Arbeits- und Lebenswelt grundlegend. Dampfmaschine, Eisenbahn und mechanische Webstühle ersetzten schrittweise die Handarbeit.</p><p>2. Ursachen<br>Zu den wichtigsten Ursachen zählen das Bevölkerungswachstum, neue Erfindungen, verfügbare Rohstoffe wie Kohle und Eisen sowie ein wachsender Welthandel.</p><p>3. Folgen<br>Städte wuchsen rasant, es entstand eine Arbeiterklasse, und soziale Fragen rückten in den Mittelpunkt der politischen Debatte.</p></div></div>
 <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Spiel">
