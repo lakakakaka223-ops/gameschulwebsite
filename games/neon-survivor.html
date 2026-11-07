@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Neon Survivor</title>
+<style>
+:root{--bg:#0c0a1f;--cy:#3df5ff;--mg:#ff3d8b;--ye:#ffd23b;--vi:#a45bff;--tx:#eef;}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font-family:"Trebuchet MS",system-ui,sans-serif;overflow:hidden;touch-action:none;user-select:none}
+canvas{display:block;width:100%;height:100%}
+#ui{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;background:rgba(8,6,24,.82);padding:16px}
+#ui.off{display:none}
+h1{font-size:clamp(34px,8vw,68px);margin:0 0 6px;color:var(--cy);text-shadow:0 0 18px var(--cy),0 0 40px var(--mg);letter-spacing:2px}
+h2{font-size:clamp(26px,6vw,44px);margin:0 0 8px;color:var(--mg);text-shadow:0 0 16px var(--mg)}
+p{max-width:520px;line-height:1.5;margin:6px 0;color:#c9c9ee}
+button{font:inherit;font-weight:700;font-size:18px;color:var(--bg);background:var(--cy);border:0;border-radius:10px;padding:12px 28px;margin:14px 6px 0;cursor:pointer;box-shadow:0 0 18px var(--cy)}
+button:hover{background:#fff}
+button:focus-visible{outline:3px solid var(--ye);outline-offset:3px}
+.cards{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+.card{width:170px;background:#17133a;border:2px solid var(--vi);border-radius:12px;padding:14px 10px;cursor:pointer;color:var(--tx);box-shadow:none}
+.card:hover{border-color:var(--ye);background:#221b55}
+.card b{display:block;font-size:17px;color:var(--ye);margin-bottom:6px}
+.card span{font-size:14px;color:#c9c9ee;font-weight:400}
+.hint{font-size:13px;color:#8a8ab8;margin-top:18px}
+kbd{background:#241e55;border-radius:5px;padding:1px 7px;color:var(--cy)}
+#fake{position:fixed;inset:0;background:#f1f3f4;color:#202124;z-index:99;display:none;font-family:Arial,sans-serif;overflow:auto;touch-action:auto;user-select:text}
+#fake .bar{background:#fff;border-bottom:1px solid #dadce0;padding:10px 20px;font-size:14px}
+#fake .bar b{color:#1a73e8;font-size:18px}
+#fake .page{background:#fff;max-width:760px;margin:20px auto;padding:56px 64px;box-shadow:0 1px 4px rgba(0,0,0,.3);min-height:900px;font-size:15px;line-height:1.7}
+#fake h3{font-size:26px;margin:0 0 18px}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="ui"></div>
+<div id="fake">
+  <div class="bar"><b>Dokumente</b> &nbsp; Referat_Industrielle_Revolution.docx &nbsp; Datei Bearbeiten Ansicht Einfügen</div>
+  <div class="page">
+    <h3>Die Industrielle Revolution</h3>
+    <p style="color:#202124;max-width:none">1. Einleitung<br>Die Industrielle Revolution begann im 18. Jahrhundert in Großbritannien und veränderte die Arbeits- und Lebenswelt grundlegend. Dampfmaschine, Eisenbahn und mechanische Webstühle ersetzten schrittweise die Handarbeit.</p>
+    <p style="color:#202124;max-width:none">2. Ursachen<br>Zu den wichtigsten Ursachen zählen das Bevölkerungswachstum, neue Erfindungen, verfügbare Rohstoffe wie Kohle und Eisen sowie ein wachsender Welthandel.</p>
+    <p style="color:#202124;max-width:none">3. Folgen<br>Städte wuchsen rasant, es entstand eine Arbeiterklasse, und soziale Fragen rückten in den Mittelpunkt der politischen Debatte.</p>
+  </div>
+</div>
+
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d'),ui=document.getElementById('ui'),fake=document.getElementById('fake');
+let W,H;
+function rs(){const d=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*d;cv.height=H*d;ctx.setTransform(d,0,0,d,0,0)}
+addEventListener('resize',rs);rs();
+
+const rnd=(a,b)=>a+Math.random()*(b-a), clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+let S='menu',paused=false,P,B,E,G,F,T,K,XP,NX,LV,spawnT,best=0;
+try{best=+localStorage.getItem('ns_best')||0}catch(e){}
+const keys={},ptr={down:false,x:0,y:0};
+
+function reset(){
+  P={x:W/2,y:H/2,hp:100,mx:100,sp:210,r:10,cd:0,rate:.55,dmg:1,multi:1,pierce:0,mag:90,inv:0};
+  B=[];E=[];G=[];F=[];T=0;K=0;XP=0;NX=5;LV=1;spawnT=1;
+}
+const fmt=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
+
+const UP=[
+  {n:'Schnellfeuer',d:'+25% Feuerrate',f:()=>P.rate*=.78},
+  {n:'Power-Schuss',d:'+1 Schaden',f:()=>P.dmg+=1},
+  {n:'Turbo-Schuhe',d:'+15% Tempo',f:()=>P.sp*=1.15},
+  {n:'Doppelschuss',d:'+1 Projektil',f:()=>P.multi+=1},
+  {n:'Magnet',d:'Mehr Reichweite für XP',f:()=>P.mag*=1.6},
+  {n:'Durchschlag',d:'Schüsse treffen +1 Gegner',f:()=>P.pierce+=1},
+  {n:'Reparatur',d:'+30 Max-HP und volle Heilung',f:()=>{P.mx+=30;P.hp=P.mx}},
+];
+
+function show(html){ui.innerHTML=html;ui.classList.remove('off')}
+function hide(){ui.classList.add('off')}
+function menu(){
+  S='menu';
+  show(`<h1>NEON SURVIVOR</h1>
+  <p>Überlebe die Neon-Horde. Du schießt automatisch, du musst nur ausweichen. Sammle XP, werde stärker und halte so lange durch wie möglich.</p>
+  <p class="hint"><kbd>WASD</kbd> oder <kbd>Pfeiltasten</kbd> bewegen. Mit Maus oder Finger gedrückt halten: Richtung folgen.<br>Lehrer kommt? <kbd>0</kbd> versteckt das Spiel sofort.</p>
+  <p class="hint">Rekord: ${fmt(best)}</p>
+  <button id="go">Spielen</button>`);
+  document.getElementById('go').onclick=start;
+}
+function start(){reset();S='play';hide()}
+function levelup(){
+  S='lvl';
+  const pick=[...UP].sort(()=>Math.random()-.5).slice(0,3);
+  show(`<h2>Level ${LV}</h2><p>Wähle ein Upgrade (Taste 1, 2 oder 3)</p><div class="cards">`+
+    pick.map((u,i)=>`<button class="card" data-i="${i}"><b>${u.n}</b><span>${u.d}</span></button>`).join('')+`</div>`);
+  ui._pick=pick;
+  ui.querySelectorAll('.card').forEach(b=>b.onclick=()=>choose(+b.dataset.i));
+}
+function choose(i){
+  const u=ui._pick&&ui._pick[i];if(!u)return;
+  u.f();S='play';hide();
+}
+function die(){
+  S='dead';
+  const nb=T>best;
+  if(nb){best=T;try{localStorage.setItem('ns_best',best)}catch(e){}}
+  show(`<h2>Game Over</h2><p>Zeit: <b>${fmt(T)}</b> &nbsp; Kills: <b>${K}</b> &nbsp; Level: <b>${LV}</b></p>
+  <p>${nb?'Neuer Rekord!':'Rekord: '+fmt(best)}</p><button id="again">Nochmal</button>`);
+  document.getElementById('again').onclick=start;
+}
+
+addEventListener('keydown',e=>{
+  const k=e.key.toLowerCase();
+  if(e.code==='Digit0'||e.code==='Numpad0'){paused=!paused;fake.style.display=paused?'block':'none';document.title=paused?'Referat - Dokumente':'Neon Survivor';return}
+  keys[k]=true;
+  if(S==='lvl'&&'123'.includes(k))choose(+k-1);
+  if((S==='menu'||S==='dead')&&(k==='enter'||k===' '))start();
+  if(k.startsWith('arrow')||k===' ')e.preventDefault();
+});
+addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+cv.addEventListener('pointerdown',e=>{ptr.down=true;ptr.x=e.clientX;ptr.y=e.clientY});
+addEventListener('pointermove',e=>{ptr.x=e.clientX;ptr.y=e.clientY});
+addEventListener('pointerup',()=>ptr.down=false);
+
+function spawn(){
+  const side=Math.floor(Math.random()*4),m=30;
+  let x,y;
+  if(side===0){x=rnd(0,W);y=-m}else if(side===1){x=W+m;y=rnd(0,H)}else if(side===2){x=rnd(0,W);y=H+m}else{x=-m;y=rnd(0,H)}
+  const r=Math.random(),sc=1+T/70;
+  let e;
+  if(T>40&&r<.12)e={hp:12*sc,sp:48,r:20,c:'#a45bff'};
+  else if(T>14&&r<.38)e={hp:1.5*sc,sp:140,r:8,c:'#ffd23b'};
+  else e={hp:2.5*sc,sp:Math.min(70+T*.4,120),r:11,c:'#ff3d8b'};
+  e.x=x;e.y=y;e.mhp=e.hp;e.kx=0;e.ky=0;E.push(e);
+}
+function boom(x,y,c,n){for(let i=0;i<n;i++){const a=rnd(0,6.28),s=rnd(40,200);F.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,l:rnd(.25,.6),c})}}
+
+function update(dt){
+  T+=dt;
+  let dx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0);
+  let dy=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);
+  if(ptr.down&&!dx&&!dy){const ax=ptr.x-P.x,ay=ptr.y-P.y,d=Math.hypot(ax,ay);if(d>12){dx=ax/d;dy=ay/d}}
+  const l=Math.hypot(dx,dy);if(l>1){dx/=l;dy/=l}
+  P.x=clamp(P.x+dx*P.sp*dt,P.r,W-P.r);P.y=clamp(P.y+dy*P.sp*dt,P.r,H-P.r);
+  P.inv-=dt;
+
+  spawnT-=dt;
+  if(spawnT<=0){spawnT=Math.max(.16,1-T/80);const n=1+Math.floor(T/40);for(let i=0;i<n;i++)spawn()}
+
+  P.cd-=dt;
+  if(P.cd<=0){
+    let t=null,bd=520;
+    for(const e of E){const d=Math.hypot(e.x-P.x,e.y-P.y);if(d<bd){bd=d;t=e}}
+    if(t){
+      P.cd=P.rate;
+      const a=Math.atan2(t.y-P.y,t.x-P.x);
+      for(let i=0;i<P.multi;i++){
+        const g=a+(i-(P.multi-1)/2)*.2;
+        B.push({x:P.x,y:P.y,vx:Math.cos(g)*520,vy:Math.sin(g)*520,l:1.1,p:P.pierce,h:[]});
+      }
+    }
+  }
+
+  for(const b of B){
+    b.x+=b.vx*dt;b.y+=b.vy*dt;b.l-=dt;
+    for(const e of E){
+      if(b.l<=0)break;
+      if(b.h.includes(e))continue;
+      if(Math.hypot(e.x-b.x,e.y-b.y)<e.r+4){
+        e.hp-=P.dmg;b.h.push(e);
+        const n=Math.hypot(b.vx,b.vy);e.kx+=b.vx/n*120;e.ky+=b.vy/n*120;
+        boom(b.x,b.y,e.c,3);
+        if(b.p--<=0)b.l=0;
+      }
+    }
+  }
+  B=B.filter(b=>b.l>0);
+
+  for(const e of E){
+    const a=Math.atan2(P.y-e.y,P.x-e.x);
+    e.x+=(Math.cos(a)*e.sp+e.kx)*dt;e.y+=(Math.sin(a)*e.sp+e.ky)*dt;
+    e.kx*=.88;e.ky*=.88;
+    if(P.inv<=0&&Math.hypot(e.x-P.x,e.y-P.y)<e.r+P.r-2){
+      P.hp-=12;P.inv=.7;boom(P.x,P.y,'#3df5ff',14);
+    }
+  }
+  for(const e of E)if(e.hp<=0){K++;G.push({x:e.x,y:e.y});boom(e.x,e.y,e.c,10)}
+  E=E.filter(e=>e.hp>0);
+
+  for(const g of G){
+    const d=Math.hypot(P.x-g.x,P.y-g.y);
+    if(d<P.mag){g.x+=(P.x-g.x)/d*340*dt;g.y+=(P.y-g.y)/d*340*dt}
+    if(d<P.r+6){g.dead=true;XP++}
+  }
+  G=G.filter(g=>!g.dead);
+  for(const f of F){f.x+=f.vx*dt;f.y+=f.vy*dt;f.l-=dt}
+  F=F.filter(f=>f.l>0);
+
+  if(P.hp<=0){die();return}
+  if(XP>=NX){XP=0;NX=Math.floor(NX*1.35+3);LV++;levelup()}
+}
+
+function draw(){
+  ctx.fillStyle='#0c0a1f';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(120,100,255,.10)';ctx.lineWidth=1;
+  ctx.beginPath();
+  for(let x=0;x<W;x+=48){ctx.moveTo(x,0);ctx.lineTo(x,H)}
+  for(let y=0;y<H;y+=48){ctx.moveTo(0,y);ctx.lineTo(W,y)}
+  ctx.stroke();
+  if(!P)return;
+
+  ctx.fillStyle='#6dffb0';
+  for(const g of G){ctx.fillRect(g.x-3,g.y-3,6,6)}
+  for(const e of E){
+    ctx.fillStyle=e.c;ctx.shadowColor=e.c;ctx.shadowBlur=10;
+    ctx.beginPath();ctx.arc(e.x,e.y,e.r,0,6.283);ctx.fill();
+    if(e.mhp>4){ctx.shadowBlur=0;ctx.fillStyle='#000a';ctx.fillRect(e.x-e.r,e.y-e.r-8,e.r*2,3);ctx.fillStyle='#fff';ctx.fillRect(e.x-e.r,e.y-e.r-8,e.r*2*clamp(e.hp/e.mhp,0,1),3)}
+  }
+  ctx.fillStyle='#fff';ctx.shadowColor='#3df5ff';ctx.shadowBlur=12;
+  for(const b of B){ctx.beginPath();ctx.arc(b.x,b.y,4,0,6.283);ctx.fill()}
+  for(const f of F){ctx.globalAlpha=clamp(f.l*3,0,1);ctx.fillStyle=f.c;ctx.fillRect(f.x-2,f.y-2,4,4)}
+  ctx.globalAlpha=1;
+
+  if(!(P.inv>0&&Math.floor(P.inv*20)%2)){
+    ctx.fillStyle='#3df5ff';ctx.shadowColor='#3df5ff';ctx.shadowBlur=22;
+    ctx.beginPath();ctx.arc(P.x,P.y,P.r,0,6.283);ctx.fill();
+  }
+  ctx.shadowBlur=0;
+
+  // HUD
+  ctx.fillStyle='#ffffff22';ctx.fillRect(0,0,W,8);
+  ctx.fillStyle='#6dffb0';ctx.fillRect(0,0,W*XP/NX,8);
+  const bw=Math.min(220,W*.4);
+  ctx.fillStyle='#ffffff22';ctx.fillRect(14,20,bw,12);
+  ctx.fillStyle='#ff3d8b';ctx.fillRect(14,20,bw*clamp(P.hp/P.mx,0,1),12);
+  ctx.fillStyle='#eef';ctx.font='700 16px "Trebuchet MS",sans-serif';
+  ctx.textAlign='right';ctx.fillText(fmt(T)+'   Kills '+K+'   Lv '+LV,W-14,32);
+  ctx.textAlign='left';
+}
+
+let last=performance.now();
+function loop(t){
+  const dt=Math.min((t-last)/1000,.05);last=t;
+  if(S==='play'&&!paused)update(dt);
+  draw();requestAnimationFrame(loop);
+}
+reset();menu();requestAnimationFrame(loop);
+</script>
+</body>
+</html>

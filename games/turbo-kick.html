@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Turbo Kick</title>
+<style>
+:root{--bg:#0d2a1a;--yl:#ffe14d;--bl:#2fa8ff;--rd:#ff5a4d;--tx:#f2fff6}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font-family:"Trebuchet MS",system-ui,sans-serif;overflow:hidden;user-select:none}
+canvas{display:block;width:100%;height:100%}
+#ui{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;background:rgba(6,24,14,.86);padding:16px}
+#ui.off{display:none}
+h1{font:italic 900 clamp(40px,9vw,84px)/1 Impact,"Arial Black",sans-serif;margin:0 0 8px;color:var(--yl);letter-spacing:2px;text-shadow:4px 4px 0 var(--bl),8px 8px 0 var(--rd)}
+h2{font:italic 900 clamp(30px,7vw,54px)/1.1 Impact,"Arial Black",sans-serif;margin:0 0 8px;color:var(--yl)}
+p{max-width:560px;line-height:1.5;margin:6px 0;color:#cfe9d6}
+button{font:inherit;font-weight:800;font-size:18px;color:#0d2a1a;background:var(--yl);border:0;border-radius:10px;padding:12px 26px;margin:10px 6px 0;cursor:pointer}
+button:hover{background:#fff}
+button:focus-visible{outline:3px solid var(--bl);outline-offset:3px}
+button.o{background:#1c4a30;color:var(--tx);font-size:15px;padding:8px 18px;margin-top:14px}
+button.o.sel{background:var(--bl);color:#04202f}
+.hint{font-size:13px;color:#8fb59d;margin-top:14px}
+kbd{background:#1c4a30;border-radius:5px;padding:1px 7px;color:var(--yl)}
+#fake{position:fixed;inset:0;background:#f1f3f4;color:#202124;z-index:99;display:none;font-family:Arial,sans-serif;overflow:auto}
+#fake .bar{background:#fff;border-bottom:1px solid #dadce0;padding:10px 20px;font-size:14px}
+#fake .bar b{color:#1a73e8;font-size:18px}
+#fake .page{background:#fff;max-width:760px;margin:20px auto;padding:56px 64px;box-shadow:0 1px 4px rgba(0,0,0,.3);min-height:900px;font-size:15px;line-height:1.7}
+#fake h3{font-size:26px;margin:0 0 18px}
+#fake p{color:#202124;max-width:none}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="ui"></div>
+<div id="fake">
+  <div class="bar"><b>Dokumente</b> &nbsp; Referat_Industrielle_Revolution.docx &nbsp; Datei Bearbeiten Ansicht Einfügen</div>
+  <div class="page">
+    <h3>Die Industrielle Revolution</h3>
+    <p>1. Einleitung<br>Die Industrielle Revolution begann im 18. Jahrhundert in Großbritannien und veränderte die Arbeits- und Lebenswelt grundlegend. Dampfmaschine, Eisenbahn und mechanische Webstühle ersetzten schrittweise die Handarbeit.</p>
+    <p>2. Ursachen<br>Zu den wichtigsten Ursachen zählen das Bevölkerungswachstum, neue Erfindungen, verfügbare Rohstoffe wie Kohle und Eisen sowie ein wachsender Welthandel.</p>
+    <p>3. Folgen<br>Städte wuchsen rasant, es entstand eine Arbeiterklasse, und soziale Fragen rückten in den Mittelpunkt der politischen Debatte.</p>
+  </div>
+</div>
+
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d'),ui=document.getElementById('ui'),fake=document.getElementById('fake');
+const PW=1000,PH=600,GH=170,GD=36,gt=PH/2-GH/2,gb=PH/2+GH/2,MATCH=120;
+const D=[{spd:.82,sh:.6,gk:.72,err:.5},{spd:.95,sh:1,gk:.95,err:.25},{spd:1.06,sh:1.5,gk:1.15,err:.1}];
+const MAP=[
+ {u:['KeyW'],d:['KeyS'],l:['KeyA'],r:['KeyD'],sh:['Space'],ps:['KeyE'],sp:['ShiftLeft','KeyQ']},
+ {u:['ArrowUp'],d:['ArrowDown'],l:['ArrowLeft'],r:['ArrowRight'],sh:['Enter'],ps:['ShiftRight'],sp:['Slash']}];
+const COL=['#2fa8ff','#ff5a4d'],GKC=['#ffe14d','#9cff4d'],NAME=['BLAU','ROT'];
+let W,H,dpr,sc,ox,oy;
+let state='menu',mode=1,dl=1,paused=false,score=[0,0],time=MATCH,golden=false,stateT=0,koTeam=0;
+let TM=[[],[]],P=[],ball,hs=[],chaser=[null,null],parts=[],trail=[],gscorer=0;
+const down={};
+
+function rs(){
+  dpr=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*dpr;cv.height=H*dpr;
+  const top=64;sc=Math.min((W-16)/(PW+2*GD),(H-top-8)/PH);ox=(W-PW*sc)/2;oy=top+(H-top-8-PH*sc)/2;
+}
+addEventListener('resize',rs);rs();
+
+const rnd=(a,b)=>a+Math.random()*(b-a),clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+const fmt=s=>{const n=Math.ceil(s);return Math.floor(n/60)+':'+String(n%60).padStart(2,'0')};
+
+/* ---------- Setup ---------- */
+function setup(){
+  const F=[[40,300],[250,300],[430,160],[430,440]];
+  TM=[[],[]];
+  for(let t=0;t<2;t++)for(let i=0;i<4;i++){
+    const hx=t?PW-F[i][0]:F[i][0];
+    TM[t].push({t,i,gk:i==0,x:hx,y:F[i][1],hx,hy:F[i][1],vx:0,vy:0,fx:t?-1:1,fy:0,kcd:0,sl:0,slcd:0,r:i?13:15,hold:0});
+  }
+  P=[...TM[0],...TM[1]];
+  ball={x:PW/2,y:PH/2,vx:0,vy:0,r:8,lt:0};
+  hs=[{t:0,m:0,p:null,ch:0,charging:false,st:1,ax:1,ay:0}];
+  if(mode==2)hs.push({t:1,m:1,p:null,ch:0,charging:false,st:1,ax:-1,ay:0});
+  score=[0,0];time=MATCH;golden=false;parts=[];trail=[];
+}
+function kickoff(team){
+  for(const p of P){p.x=p.hx;p.y=p.hy;p.vx=p.vy=0;p.kcd=0;p.sl=0;p.hold=0;p.fx=p.t?-1:1;p.fy=0}
+  const k=TM[team][1];k.x=PW/2+(team?30:-30);k.y=PH/2;
+  ball.x=PW/2;ball.y=PH/2;ball.vx=ball.vy=0;ball.lt=team;trail=[];
+  for(const h of hs){h.p=null;h.charging=false}
+  state='kick';stateT=1.5;
+}
+
+/* ---------- Menü ---------- */
+function show(h){ui.innerHTML=h;ui.classList.remove('off')}
+function menu(){
+  state='menu';
+  show(`<h1>TURBO KICK</h1>
+  <p>Schnelles 4-gegen-4 ohne Aus: Der Ball prallt von den Banden ab. 2 Minuten, bei Gleichstand gibt es Golden Goal.</p>
+  <div>${['Leicht','Normal','Schwer'].map((n,i)=>`<button class="o ${i==dl?'sel':''}" data-d="${i}">${n}</button>`).join('')}</div>
+  <div><button id="p1">1 Spieler gegen CPU</button><button id="p2">2 Spieler</button></div>
+  <p class="hint"><kbd>WASD</kbd> bewegen, <kbd>Leertaste</kbd> schießen (halten = stärker, ohne Ball = Grätsche), <kbd>E</kbd> passen, <kbd>Shift</kbd> sprinten.<br>
+  Spieler 2: <kbd>Pfeile</kbd>, <kbd>Enter</kbd> schießen, <kbd>Rechts-Shift</kbd> passen, <kbd>/</kbd> sprinten.<br>
+  Im 1-Spieler-Modus gehen beide Tastensätze. Du steuerst automatisch den Spieler am Ball.<br>
+  Lehrer kommt? Drück <kbd>0</kbd>.</p>`);
+  ui.querySelectorAll('.o').forEach(b=>b.onclick=()=>{dl=+b.dataset.d;menu()});
+  document.getElementById('p1').onclick=()=>begin(1);
+  document.getElementById('p2').onclick=()=>begin(2);
+}
+function begin(m){mode=m;setup();ui.classList.add('off');kickoff(0)}
+function endGame(){
+  state='end';
+  const w=score[0]>score[1]?0:1;
+  const txt=mode==1?(w==0?'Du gewinnst!':'Die CPU gewinnt'):NAME[w]+' gewinnt!';
+  show(`<h2>${txt}</h2><p style="font-size:34px;color:#fff;font-weight:800">${score[0]} : ${score[1]}</p>
+  <div><button id="re">Revanche</button><button class="o" id="mn">Menü</button></div>`);
+  document.getElementById('re').onclick=()=>begin(mode);
+  document.getElementById('mn').onclick=menu;
+}
+
+/* ---------- Eingabe ---------- */
+function sets(h){return mode==1?MAP:[MAP[hs[h].m]]}
+function held(h,a){return sets(h).some(m=>m[a].some(c=>down[c]))}
+function actFor(code){
+  const r=[];
+  for(let h=0;h<hs.length;h++)for(const m of sets(h))for(const a in m)if(m[a].includes(code))r.push([h,a]);
+  return r;
+}
+function bossToggle(){paused=!paused;fake.style.display=paused?'block':'none';document.title=paused?'Referat - Dokumente':'Turbo Kick'}
+addEventListener('keydown',e=>{
+  if(e.code==='Digit0'||e.code==='Numpad0'){bossToggle();return}
+  if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Slash'].includes(e.code))e.preventDefault();
+  if(e.repeat)return;
+  down[e.code]=true;
+  if(state==='play')for(const [h,a] of actFor(e.code)){if(a==='sh')shDown(h);if(a==='ps')passKey(h)}
+});
+addEventListener('keyup',e=>{
+  down[e.code]=false;
+  if(state==='play')for(const [h,a] of actFor(e.code))if(a==='sh')shUp(h);
+});
+addEventListener('blur',()=>{for(const k in down)down[k]=false});
+
+/* ---------- Aktionen ---------- */
+function kick(p,dx,dy,pw){
+  const l=Math.hypot(dx,dy)||1;dx/=l;dy/=l;
+  ball.vx=dx*pw+p.vx*.2;ball.vy=dy*pw+p.vy*.2;
+  ball.x=p.x+dx*(p.r+ball.r+2);ball.y=p.y+dy*(p.r+ball.r+2);
+  p.kcd=.28;ball.lt=p.t;
+}
+function bestPass(p,ax,ay,hum){
+  let best=null,bs=-9;const am=Math.hypot(ax,ay)||1;ax/=am;ay/=am;
+  for(const q of TM[p.t]){
+    if(q===p||q.gk)continue;
+    const vx=q.x-p.x,vy=q.y-p.y,d=Math.hypot(vx,vy);
+    if(d<70||d>560)continue;
+    const c=(vx*ax+vy*ay)/d;if(c<(hum?.45:.1))continue;
+    let s=c*2-d/700;if(!hum)s+=(q.x-p.x)*(p.t?-1:1)/500;
+    if(s>bs){bs=s;best=q}
+  }
+  return best;
+}
+function passTo(p,q){const d=dist(p,q);kick(p,q.x+q.vx*.3-p.x,q.y+q.vy*.3-p.y,clamp(d*1.7+170,320,760))}
+function aimShot(p,ax,ay){
+  const gx=p.t?0:PW,dx=gx-p.x,sg=p.t?-1:1;
+  if(ax*sg>.2&&Math.abs(dx)<480){
+    const yh=p.y+ay*(dx/ax);
+    if(yh>gt-70&&yh<gb+70)return[dx,clamp(yh,gt+24,gb-24)-p.y];
+  }
+  return[ax,ay];
+}
+function shDown(h){
+  const H=hs[h],p=H.p;if(!p)return;
+  if(dist(p,ball)<p.r+ball.r+14){H.charging=true;H.ch=0}
+  else if(p.slcd<=0){p.sl=.28;p.slcd=1}
+}
+function shUp(h){
+  const H=hs[h],p=H.p;if(!H.charging)return;H.charging=false;
+  if(!p||dist(p,ball)>p.r+ball.r+18)return;
+  const [dx,dy]=aimShot(p,H.ax,H.ay);
+  kick(p,dx,dy,340+560*Math.min(1,H.ch/.9));
+}
+function passKey(h){
+  const H=hs[h],p=H.p;if(!p||dist(p,ball)>p.r+ball.r+18)return;
+  const q=bestPass(p,H.ax,H.ay,true);
+  if(q){passTo(p,q);H.p=q}else kick(p,H.ax,H.ay,420);
+}
+
+/* ---------- Steuerung / KI ---------- */
+function pick(H){
+  if(H.charging||(H.p&&H.p.sl>0))return;
+  let best=null,bd=1e9;
+  for(const q of TM[H.t]){if(q.gk)continue;const d=dist(q,ball);if(d<bd){bd=d;best=q}}
+  if(!H.p||H.p.gk||(best!==H.p&&dist(H.p,ball)-bd>28))H.p=best;
+}
+function humanMove(H,h,dt){
+  const p=H.p;
+  let dx=(held(h,'r')?1:0)-(held(h,'l')?1:0),dy=(held(h,'d')?1:0)-(held(h,'u')?1:0);
+  const m=Math.hypot(dx,dy);
+  if(m){dx/=m;dy/=m;p.fx=dx;p.fy=dy}
+  H.ax=m?dx:p.fx;H.ay=m?dy:p.fy;
+  let sp=175;
+  if(held(h,'sp')&&m&&H.st>.02){sp=250;H.st=Math.max(0,H.st-dt*.5)}else H.st=Math.min(1,H.st+dt*.3);
+  if(H.charging)H.ch+=dt;
+  if(p.sl>0){const k=190+240*p.sl/.28;p.vx=p.fx*k;p.vy=p.fy*k}
+  else{const a=Math.min(1,9*dt);p.vx+=(dx*sp-p.vx)*a;p.vy+=(dy*sp-p.vy)*a}
+}
+function goTo(p,tx,ty,sp,dt){
+  const dx=tx-p.x,dy=ty-p.y,d=Math.hypot(dx,dy);let vx=0,vy=0;
+  if(d>6){const s=Math.min(sp,d*6);vx=dx/d*s;vy=dy/d*s;p.fx=dx/d;p.fy=dy/d}
+  const a=Math.min(1,8*dt);p.vx+=(vx-p.vx)*a;p.vy+=(vy-p.vy)*a;
+}
+function nearestOpp(p){let d=1e9;for(const o of TM[1-p.t]){const k=dist(p,o);if(k<d)d=k}return d}
+function aiOut(p,dt){
+  const t=p.t,dir=t?-1:1,gx=t?0:PW,df=D[dl],d=dist(p,ball);
+  if(p===chaser[t]){
+    if(d<p.r+ball.r+11){
+      const dg=Math.hypot(gx-p.x,PH/2-p.y);
+      if(dg<340&&p.kcd<=0&&Math.random()<dt*4*df.sh){
+        const kp=TM[1-t][0],cy=PH/2+(kp.y<PH/2?1:-1)*GH*.32+(Math.random()-.5)*GH*df.err*2.4;
+        kick(p,gx-p.x,cy-p.y,620+Math.random()*130);
+      }else if(p.kcd<=0&&nearestOpp(p)<62&&Math.random()<dt*3){
+        const q=bestPass(p,dir,0,false);if(q)passTo(p,q);
+      }else goTo(p,gx,PH/2+(p.y-PH/2)*.4,175*df.spd,dt);
+    }else goTo(p,ball.x+ball.vx*.25,ball.y+ball.vy*.25,205*df.spd,dt);
+  }else{
+    const pu=ball.lt===t?1:0;
+    goTo(p,clamp(p.hx+(ball.x-PW/2)*.42+dir*pu*70,40,PW-40),clamp(p.hy+(ball.y-PH/2)*.4,40,PH-40),150*df.spd,dt);
+  }
+}
+function aiGK(p,dt){
+  const t=p.t,dir=t?-1:1,gl=t?PW:0,df=D[dl],bd=dist(p,ball);
+  let tx=gl+dir*30,ty=clamp(ball.y,gt+14,gb-14);
+  if(ball.vx*dir<-60){const k=(tx-ball.x)/ball.vx;if(k>0&&k<1.5)ty=clamp(ball.y+ball.vy*k,gt+14,gb-14)}
+  if(Math.abs(ball.x-gl)<200&&ball.y>gt-40&&ball.y<gb+40&&Math.hypot(ball.vx,ball.vy)<300&&bd<200){tx=ball.x;ty=ball.y}
+  tx=clamp(tx,t?PW-150:14,t?PW-14:150);
+  goTo(p,tx,ty,215*df.gk,dt);
+  if(bd<p.r+ball.r+10&&p.kcd<=0){p.hold+=dt;if(p.hold>.35){p.hold=0;kick(p,dir,(Math.random()-.5)*1.4,560)}}else p.hold=0;
+}
+
+/* ---------- Physik ---------- */
+function touch(p){
+  if(p.kcd>0)return;
+  const dx=ball.x-p.x,dy=ball.y-p.y,d=Math.hypot(dx,dy),md=p.r+ball.r;
+  if(d>=md||d===0)return;
+  const nx=dx/d,ny=dy/d;
+  ball.x=p.x+nx*md;ball.y=p.y+ny*md;
+  const pn=p.vx*nx+p.vy*ny,bn=ball.vx*nx+ball.vy*ny,want=Math.max(pn*1.2+25,bn);
+  ball.vx+=(want-bn)*nx+(p.vx-ball.vx)*.12;ball.vy+=(want-bn)*ny+(p.vy-ball.vy)*.12;
+  ball.lt=p.t;
+}
+function ballStep(dt){
+  ball.x+=ball.vx*dt;ball.y+=ball.vy*dt;
+  const k=Math.exp(-1.05*dt);ball.vx*=k;ball.vy*=k;
+  const sp=Math.hypot(ball.vx,ball.vy);
+  if(sp>950){ball.vx*=950/sp;ball.vy*=950/sp}
+  if(sp<6)ball.vx=ball.vy=0;
+  const r=ball.r;
+  if(ball.y<r){ball.y=r;ball.vy=Math.abs(ball.vy)*.8}
+  if(ball.y>PH-r){ball.y=PH-r;ball.vy=-Math.abs(ball.vy)*.8}
+  const inG=ball.y>gt+r*.4&&ball.y<gb-r*.4;
+  if(!inG){
+    if(ball.x<r){ball.x=r;ball.vx=Math.abs(ball.vx)*.8}
+    if(ball.x>PW-r){ball.x=PW-r;ball.vx=-Math.abs(ball.vx)*.8}
+  }else{
+    if(ball.x<-GD+r){ball.x=-GD+r;ball.vx=Math.abs(ball.vx)*.4}
+    if(ball.x>PW+GD-r){ball.x=PW+GD-r;ball.vx=-Math.abs(ball.vx)*.4}
+    if(ball.x<r||ball.x>PW-r){
+      if(ball.y<gt+r){ball.y=gt+r;ball.vy=Math.abs(ball.vy)*.5}
+      if(ball.y>gb-r){ball.y=gb-r;ball.vy=-Math.abs(ball.vy)*.5}
+    }
+  }
+  if(sp>380){trail.push({x:ball.x,y:ball.y});if(trail.length>8)trail.shift()}else if(trail.length)trail.shift();
+}
+function goal(t){
+  score[t]++;gscorer=t;state='goal';stateT=2.4;koTeam=1-t;
+  for(let i=0;i<130;i++)parts.push({x:rnd(0,PW),y:rnd(-120,0),vx:rnd(-50,50),vy:rnd(60,260),l:rnd(2,3.4),c:['#ffe14d','#2fa8ff','#ff5a4d','#fff','#9cff4d'][i%5]});
+}
+
+function update(dt){
+  for(const q of parts){q.x+=q.vx*dt;q.y+=q.vy*dt;q.l-=dt}
+  parts=parts.filter(q=>q.l>0);
+  if(state==='menu'||state==='end')return;
+  if(state==='kick'){stateT-=dt;if(stateT<=0)state='play';return}
+  if(state==='goal'){
+    stateT-=dt;ballStep(dt);
+    for(const p of P){p.vx*=.9;p.vy*=.9;p.x+=p.vx*dt;p.y+=p.vy*dt}
+    if(stateT<=0){if(golden||(time<=0&&score[0]!==score[1]))endGame();else kickoff(koTeam)}
+    return;
+  }
+  // play
+  if(time>0){time-=dt;if(time<=0){time=0;if(score[0]!==score[1]){endGame();return}golden=true}}
+  for(const h of hs)pick(h);
+  for(let t=0;t<2;t++){
+    const hp=hs.find(h=>h.t===t),hpp=hp&&hp.p;let b=null,bd=1e9;
+    for(const q of TM[t]){if(q.gk||q===hpp)continue;const d=dist(q,ball);if(d<bd){bd=d;b=q}}
+    chaser[t]=(hpp&&dist(hpp,ball)<bd-20)?null:b;
+  }
+  for(const p of P){
+    p.kcd-=dt;p.slcd-=dt;if(p.sl>0)p.sl-=dt;
+    const hi=hs.findIndex(h=>h.p===p);
+    if(hi>=0)humanMove(hs[hi],hi,dt);else if(p.gk)aiGK(p,dt);else aiOut(p,dt);
+    p.x=clamp(p.x+p.vx*dt,p.r,PW-p.r);p.y=clamp(p.y+p.vy*dt,p.r,PH-p.r);
+  }
+  for(let i=0;i<P.length;i++)for(let j=i+1;j<P.length;j++){
+    const a=P[i],b=P[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy),md=a.r+b.r;
+    if(d<md&&d>0){const k=(md-d)/2/d;a.x-=dx*k;a.y-=dy*k;b.x+=dx*k;b.y+=dy*k}
+  }
+  for(const p of P)touch(p);
+  ballStep(dt);
+  if(ball.y>gt&&ball.y<gb){if(ball.x<0)goal(1);else if(ball.x>PW)goal(0)}
+}
+
+/* ---------- Zeichnen ---------- */
+function draw(){
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.fillStyle='#0d2a1a';ctx.fillRect(0,0,W,H);
+  if(!ball)return;
+  ctx.setTransform(dpr*sc,0,0,dpr*sc,ox*dpr,oy*dpr);
+  for(let i=0;i<10;i++){ctx.fillStyle=i%2?'#238a40':'#1f7d39';ctx.fillRect(i*PW/10,0,PW/10,PH)}
+  ctx.strokeStyle='rgba(255,255,255,.85)';ctx.lineWidth=3;
+  ctx.strokeRect(0,0,PW,PH);
+  ctx.beginPath();ctx.moveTo(PW/2,0);ctx.lineTo(PW/2,PH);ctx.stroke();
+  ctx.beginPath();ctx.arc(PW/2,PH/2,70,0,6.283);ctx.stroke();
+  ctx.strokeRect(0,150,150,300);ctx.strokeRect(PW-150,150,150,300);
+  for(const s of[0,1]){
+    const x=s?PW:-GD;
+    ctx.fillStyle='rgba(0,0,0,.35)';ctx.fillRect(x,gt,GD,GH);
+    ctx.strokeStyle='rgba(255,255,255,.3)';ctx.lineWidth=1;
+    ctx.beginPath();
+    for(let k=0;k<=GD;k+=9){ctx.moveTo(x+k,gt);ctx.lineTo(x+k,gb)}
+    for(let k=0;k<=GH;k+=10){ctx.moveTo(x,gt+k);ctx.lineTo(x+GD,gt+k)}
+    ctx.stroke();
+    ctx.fillStyle='#fff';
+    for(const y of[gt,gb]){ctx.beginPath();ctx.arc(s?PW:0,y,5,0,6.283);ctx.fill()}
+  }
+  // Schatten und Spieler
+  for(const p of P){
+    ctx.fillStyle='rgba(0,0,0,.28)';ctx.beginPath();ctx.ellipse(p.x+3,p.y+5,p.r,p.r*.7,0,0,6.283);ctx.fill();
+  }
+  for(const p of P){
+    ctx.fillStyle=p.gk?GKC[p.t]:COL[p.t];
+    ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,6.283);ctx.fill();
+    ctx.strokeStyle=p.sl>0?'#fff':'rgba(0,0,0,.45)';ctx.lineWidth=2.5;ctx.stroke();
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(p.x+p.fx*p.r*.5,p.y+p.fy*p.r*.5,3.2,0,6.283);ctx.fill();
+  }
+  hs.forEach((h,i)=>{
+    const p=h.p;if(!p)return;
+    ctx.strokeStyle='#fff';ctx.lineWidth=2.5;ctx.setLineDash([6,5]);
+    ctx.beginPath();ctx.arc(p.x,p.y,p.r+7,performance.now()/400,performance.now()/400+6.283);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='#fff';ctx.font='800 14px Trebuchet MS,sans-serif';ctx.textAlign='center';
+    ctx.fillText(mode==1?'DU':'P'+(i+1),p.x,p.y-p.r-12);
+    if(h.charging){
+      ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(p.x-20,p.y+p.r+8,40,6);
+      ctx.fillStyle='#ffe14d';ctx.fillRect(p.x-20,p.y+p.r+8,40*Math.min(1,h.ch/.9),6);
+    }
+  });
+  // Ball
+  trail.forEach((t,i)=>{ctx.fillStyle=`rgba(255,255,255,${i/trail.length*.35})`;ctx.beginPath();ctx.arc(t.x,t.y,ball.r*(.4+i/trail.length*.5),0,6.283);ctx.fill()});
+  ctx.fillStyle='rgba(0,0,0,.3)';ctx.beginPath();ctx.ellipse(ball.x+2,ball.y+4,ball.r,ball.r*.6,0,0,6.283);ctx.fill();
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(ball.x,ball.y,ball.r,0,6.283);ctx.fill();
+  ctx.strokeStyle='#222';ctx.lineWidth=1.5;ctx.stroke();
+  const a=ball.x/12+ball.y/12;
+  ctx.fillStyle='#222';ctx.beginPath();ctx.arc(ball.x+Math.cos(a)*3.5,ball.y+Math.sin(a)*3.5,2.6,0,6.283);ctx.fill();
+  for(const q of parts){ctx.fillStyle=q.c;ctx.fillRect(q.x,q.y,7,4)}
+
+  // HUD
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  const cx=W/2;ctx.textAlign='center';
+  ctx.fillStyle='rgba(0,0,0,.6)';ctx.beginPath();ctx.roundRect(cx-130,6,260,52,12);ctx.fill();
+  ctx.fillStyle='#fff';ctx.font='900 32px Impact,sans-serif';ctx.fillText(score[0]+' : '+score[1],cx,40);
+  ctx.font='700 12px Trebuchet MS,sans-serif';
+  ctx.fillStyle=COL[0];ctx.fillText(NAME[0],cx-95,24);
+  ctx.fillStyle=COL[1];ctx.fillText(mode==1?'CPU':NAME[1],cx+95,24);
+  ctx.fillStyle='#ffe14d';ctx.fillText(golden?'GOLDEN GOAL':fmt(time),cx,54);
+  hs.forEach(h=>{
+    const x=h.t?W-14-90:14;
+    ctx.textAlign='left';ctx.fillStyle='#cfe9d6';ctx.font='700 11px Trebuchet MS,sans-serif';ctx.fillText('AUSDAUER',x,16);
+    ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(x,20,90,8);
+    ctx.fillStyle=h.st<.2?'#ff5a4d':'#ffe14d';ctx.fillRect(x,20,90*h.st,8);
+  });
+  ctx.textAlign='center';
+  if(state==='kick'){
+    ctx.fillStyle='#fff';ctx.font='italic 900 56px Impact,sans-serif';
+    ctx.fillText(stateT>.5?'BEREIT?':'ANSTOSS!',cx,H/2);
+  }
+  if(state==='goal'){
+    const k=Math.min(1,(2.4-stateT)*5),s=.6+.4*k;
+    ctx.save();ctx.translate(cx,H/2);ctx.scale(s,s);
+    ctx.font='italic 900 120px Impact,sans-serif';ctx.lineWidth=10;ctx.strokeStyle='#0a2a14';ctx.strokeText('TOOOR!',0,0);
+    ctx.fillStyle='#ffe14d';ctx.fillText('TOOOR!',0,0);
+    ctx.font='900 34px Impact,sans-serif';ctx.fillStyle=COL[gscorer];ctx.strokeText(mode==1&&gscorer==1?'CPU':NAME[gscorer],0,44);ctx.fillText(mode==1&&gscorer==1?'CPU':NAME[gscorer],0,44);
+    ctx.restore();
+  }
+}
+
+let last=performance.now();
+function loop(t){
+  const dt=Math.min((t-last)/1000,.05);last=t;
+  if(!paused)update(dt);
+  draw();requestAnimationFrame(loop);
+}
+setup();menu();requestAnimationFrame(loop);
+</script>
+</body>
+</html>
