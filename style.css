@@ -89,3 +89,60 @@ main{position:relative;z-index:1}
 .bar1 i{display:block;width:100%;background:linear-gradient(var(--accent),rgba(255,255,255,.25));border-radius:6px 6px 2px 2px;transition:height .8s}
 .bar1 span{font-size:10px;color:var(--muted)}
 .topg{line-height:1.8;font-size:13px}.topg b{color:var(--accent)}
+
+/* ===== Version 4: Responsive, Lobby, Touch-Steuerung ===== */
+.overlay{height:100vh;height:100dvh}
+.modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(5,8,16,.8);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:40;padding:16px;overflow:auto}
+.modal.open{display:flex}
+.mbox{width:100%;max-width:440px;background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:22px;text-align:center;animation:cardIn .3s both;max-height:100%;overflow:auto}
+.mbox h2{margin:4px 0 6px}.mbox p{color:var(--muted);margin:4px 0 12px}
+.mem{font-size:54px;animation:bob 3s ease-in-out infinite}
+.mrow{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:12px 0}
+.mrow .bigbtn{flex:1 1 150px;padding:14px 12px}
+.bigbtn small{display:block;font-weight:500;font-size:11px;opacity:.75;margin-top:3px}
+.bigbtn.alt{background:#2a8fd0;color:#fff}
+.bigbtn:disabled{opacity:.45;cursor:not-allowed}
+.lbl{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin:12px 0 6px}
+.inp{width:100%;background:#10131b;border:1px solid var(--line);border-radius:12px;padding:12px 14px;color:var(--text);font-size:16px;outline:none;text-align:center}
+.inp:focus{border-color:var(--accent)}
+.inp.code{flex:1 1 120px;letter-spacing:8px;font-size:22px;font-weight:800;width:auto}
+.or{color:var(--muted);font-size:12px;margin:4px 0}
+#mErr{min-height:20px;margin:8px 0;font-size:13px;word-break:break-word}#mErr.bad{color:#ff7a8a}#mErr.ok{color:var(--accent)}
+.codebig{font-size:52px;font-weight:900;letter-spacing:12px;color:var(--accent);text-shadow:0 0 22px var(--accent);margin:2px 0 4px;font-variant-numeric:tabular-nums}
+.plist{list-style:none;margin:6px 0 14px;padding:0;text-align:left}
+.plist li{padding:9px 12px;border-radius:10px;background:rgba(255,255,255,.05);margin:5px 0}
+.plist li.empty{opacity:.45;font-style:italic}.plist em{color:var(--muted);font-size:12px;font-style:normal}
+.pad{position:absolute;left:0;right:0;bottom:0;display:none;justify-content:space-between;align-items:flex-end;padding:10px 16px calc(14px + env(safe-area-inset-bottom,0px));pointer-events:none;z-index:5}
+body.padon .pad{display:flex}
+.pad button{pointer-events:auto;touch-action:none;border:2px solid rgba(255,255,255,.35);background:rgba(20,26,40,.55);color:#fff;font-size:22px;font-weight:800;border-radius:50%;width:58px;height:58px;backdrop-filter:blur(4px);-webkit-user-select:none;user-select:none;padding:0}
+.pad button.on{background:var(--accent);color:#14200c;border-color:var(--accent)}
+.dpad{display:grid;grid-template-columns:repeat(3,58px);grid-template-rows:repeat(2,58px);gap:6px;grid-template-areas:". up ." "left down right"}
+.dpad [data-k=ArrowUp]{grid-area:up}.dpad [data-k=ArrowLeft]{grid-area:left}.dpad [data-k=ArrowRight]{grid-area:right}.dpad [data-k=ArrowDown]{grid-area:down}
+.abtns{display:flex;gap:14px;align-items:flex-end}.abtns .a{width:78px;height:78px;font-size:26px}
+.toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%) translateY(20px);background:rgba(21,26,38,.96);border:1px solid var(--line);padding:10px 16px;border-radius:14px;opacity:0;transition:.3s;z-index:50;pointer-events:none;font-size:13px;max-width:90%;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%)}
+body[data-dev=desktop] #padBtn{display:none}
+body[data-dev=phone] .top{flex-wrap:wrap;gap:8px;padding:10px 12px}
+body[data-dev=phone] .search{order:5;flex:1 0 100%;max-width:none;margin:0}
+body[data-dev=phone] .pill,body[data-dev=tablet] .pill,body[data-dev=phone] .close,body[data-dev=tablet] .close{min-height:44px}
+body[data-dev=phone] .logo{font-size:18px}
+body[data-dev=phone] main{padding:14px 12px 50px}
+body[data-dev=phone] .hero{padding:18px;border-radius:20px}
+body[data-dev=phone] .hero h1{font-size:26px}
+body[data-dev=phone] .cta .bigbtn,body[data-dev=phone] .cta .ghost{flex:1 1 45%}
+body[data-dev=phone] .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+body[data-dev=phone] .art{height:92px;font-size:40px}
+body[data-dev=phone] .widgets{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;padding-bottom:8px}
+body[data-dev=phone] .widgets .wd{flex:0 0 80%;scroll-snap-align:start}
+body[data-dev=phone] .widgets .wd.wide{flex-basis:92%}
+body[data-dev=phone] .overlay{padding:0}
+body[data-dev=phone] .bar{margin:0;padding:6px 8px;max-width:none}
+body[data-dev=phone] .bar strong{font-size:15px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+body[data-dev=phone] .close span,body[data-dev=phone] #gameHint{display:none}
+body[data-dev=phone] .stage{border-radius:0;border:0;max-width:none;padding:0}
+body[data-dev=phone] .stage iframe{border-radius:0}
+body[data-dev=phone] .stage:not(.frame){padding:8px}
+body[data-dev=tablet] .grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
+body[data-dev=tablet] .overlay{padding:8px}
+@media (hover:none){.game:hover,.wd:hover{transform:none;box-shadow:none}}
+@media (max-width:420px){.codebig{font-size:40px;letter-spacing:8px}.mbox{padding:18px}}

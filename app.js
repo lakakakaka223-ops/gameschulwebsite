@@ -27,6 +27,11 @@ const catalog=[
 {id:'d-skyjump',name:'Sky Jump 3D',cat:'3D',tags:['3D', 'Geschick'],emoji:'☁️',desc:'Hüpf immer weiter nach oben.',colors:['#1a3a6a','#5a9ae0'],src:'a3d',start:'skyjump',isNew:true},
 {id:'d-whack',name:'Maulwurf-Jagd',cat:'3D',tags:['3D', 'Geschick'],emoji:'🔨',desc:'Treffe Maulwürfe, keine Bomben.',colors:['#4a3018','#b08050'],src:'a3d',start:'whack',isNew:true},
 {id:'d-bowling',name:'Bowling 3D',cat:'3D',tags:['3D', 'Sport'],emoji:'🎳',desc:'5 Frames mit Effet.',colors:['#2a1a5a','#7a5ad0'],src:'a3d',start:'bowling',isNew:true},
+{id:'m-connect4',name:'Vier gewinnt',cat:'Multiplayer',tags:['Multiplayer', 'Puzzle'],emoji:'🔴',desc:'Online mit Freunden oder gegen den Bot.',colors:['#5a1a2a','#e04a5a'],src:'mp',start:'connect4',mp:{min:2,max:2,solo:2},isNew:true},
+{id:'m-tron',name:'Tron-Arena',cat:'Multiplayer',tags:['Multiplayer', 'Action'],emoji:'⚡',desc:'2 bis 4 Spieler, wer die Spur kreuzt, verliert.',colors:['#0f2a5a','#2a8fe0'],src:'mp',start:'tron',mp:{min:2,max:4,solo:3},isNew:true},
+{id:'m-hockey',name:'Air-Hockey',cat:'Multiplayer',tags:['Multiplayer', 'Sport'],emoji:'🏒',desc:'Duell bis 7 Tore.',colors:['#0f3a5a','#2aa0d0'],src:'mp',start:'hockey',mp:{min:2,max:2,solo:2},isNew:true},
+{id:'m-sumo',name:'Sumo-Arena 3D',cat:'Multiplayer',tags:['Multiplayer', '3D', 'Action'],emoji:'🤼',desc:'2 bis 4 Spieler, schubse alle vom Feld.',colors:['#3a1a5a','#9a5ae0'],src:'mp',start:'sumo',mp:{min:2,max:4,solo:3},isNew:true},
+{id:'m-react',name:'Reaktions-Duell',cat:'Multiplayer',tags:['Multiplayer', 'Geschick'],emoji:'⏱️',desc:'Wer reagiert am schnellsten? Bis zu 6 Spieler.',colors:['#5a3a0a','#e0a02a'],src:'mp',start:'react',mp:{min:2,max:6,solo:3},isNew:true},
 {id:'d-arena',name:'Arena-Flucht',cat:'3D',tags:['3D', 'Action'],emoji:'🧊',desc:'Münzen sammeln, Würfeln entkommen.',colors:['#1a4a30','#3aa86a'],src:'a3d',start:'arena'},
 {id:'poly',name:'Poly Rush',cat:'Rennen',tags:['Rennen', '3D'],emoji:'🏁',desc:'Low-Poly-Zeitfahren auf 3 Strecken.',colors:['#4a2418','#d0643a'],src:'poly'},
 {id:'p-cookie',name:'Keks-Klicker',cat:'Geschick',tags:['Geschick'],emoji:'🍪',desc:'Klick den Keks, kauf Upgrades.',colors:['#5a3a1a','#c48a3a'],src:'pa',start:'cookie',retro:true},
@@ -42,7 +47,7 @@ const catalog=[
 ];
 const $=s=>document.querySelector(s), store=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}, load=k=>{try{return JSON.parse(localStorage.getItem(k)||'[]')}catch{return[]}};
 let category='Alle',favorites=load('pp-favs'),recent=load('pp-recent'),favMode=false,current=null;
-const cats=['Alle','3D','Retro','Rennen','Action','Arcade','Puzzle','Geschick','Sport','Favoriten'];
+const cats=['Alle','3D','Multiplayer','Retro','Rennen','Action','Arcade','Puzzle','Geschick','Sport','Favoriten'];
 function renderTabs(){var n=c=>c==='Alle'?catalog.length:c==='Favoriten'?favorites.length:catalog.filter(g=>tagsOf(g).includes(c)).length;$('#tabs').innerHTML=cats.map(c=>`<button class="tab ${category===c?'active':''}" data-cat="${c}">${c} <em>${n(c)}</em></button>`).join('')}
 function tagsOf(g){var t=g.tags||[g.cat];return g.retro?t.concat('Retro'):t}
 function fmtRec(g){var v=BEST[g.id];return v===undefined?'':`<i class="rec">🏆 ${v}${UNIT[g.id]||''}</i>`}
@@ -61,7 +66,7 @@ $('#tabs').addEventListener('click',e=>{let b=e.target.closest('[data-cat]');if(
 $('#search').addEventListener('input',render);
 $('#favOnly').onclick=()=>{favMode=!favMode;category='Alle';$('#favOnly').textContent=favMode?'★ Alle Spiele':'☆ Favoriten';renderTabs();render()};
 document.querySelector('main').addEventListener('click',e=>{let f=e.target.closest('[data-fav]');if(f){let id=f.dataset.fav;favorites=favorites.includes(id)?favorites.filter(x=>x!==id):[...favorites,id];store('pp-favs',favorites);render();return}let p=e.target.closest('[data-play]');if(p)launch(p.dataset.play)});
-function launch(id){current=id;var g=catalog.find(x=>x.id===id);$('#gameName').textContent=g.name;$('#gameHint').textContent=g.src?'Klick ins Spiel · P Pause · 0 Panic · Backspace schließt':'';$('#overlay').classList.add('open');document.body.classList.add('playing');bgSet();recent=[id,...recent.filter(x=>x!==id)].slice(0,8);store('pp-recent',recent);STATS.plays[id]=(STATS.plays[id]||0)+1;jset('pp-stats',STATS);endPlay();playStart=Date.now();startGame(id)}
+function launch(id,sk){var g=catalog.find(x=>x.id===id);if(g.mp&&!sk){openMode(g);return}current=id;$('#gameName').textContent=g.name;$('#gameHint').textContent=g.src?'Klick ins Spiel · P Pause · 0 Panic · Backspace schließt':'';$('#overlay').classList.add('open');document.body.classList.add('playing');bgSet();recent=[id,...recent.filter(x=>x!==id)].slice(0,8);store('pp-recent',recent);STATS.plays[id]=(STATS.plays[id]||0)+1;jset('pp-stats',STATS);endPlay();playStart=Date.now();startGame(id)}
 $('#close').onclick=closeGame;
 $('#restart').onclick=()=>current&&startGame(current);
 function startGame(id){let s=$('#stage');cleanup();let gm=catalog.find(x=>x.id===id);if(gm.src){mountFrame(gm,s);return}s.className='stage';s.innerHTML='<div class="gamebox" id="box"></div>';let b=$('#box');if(id==='snake')snake(b);if(id==='pong')pong(b);if(id==='breakout')breakout(b);if(id==='memory')memory(b);if(id==='2048')game2048(b);if(id==='tictactoe')ttt(b);if(id==='reaction')reaction(b);if(id==='clicker')clicker(b)}
@@ -84,13 +89,13 @@ function iv(f,m){var t=setInterval(f,m);TMR.push(t);return t}
 function to(f,m){var t=setTimeout(f,m);TMR.push(t);return t}
 function on(t,f){window.addEventListener(t,f);LST.push([t,f]);return f}
 function cleanup(){TMR.forEach(function(t){clearInterval(t);clearTimeout(t)});TMR=[];LST.forEach(function(a){window.removeEventListener(a[0],a[1])});LST=[];frameEl=null}
-function closeGame(){cleanup();endPlay();document.body.classList.remove('playing');bgSet();$('#overlay').classList.remove('open');$('#stage').className='stage';$('#stage').innerHTML='';current=null;render()}
+function closeGame(){if(typeof leaveNet=='function')leaveNet();cleanup();endPlay();document.body.classList.remove('playing');bgSet();$('#overlay').classList.remove('open');$('#stage').className='stage';$('#stage').innerHTML='';current=null;render()}
 var INJ='(function(){var r=window.requestAnimationFrame.bind(window),ov=null;window.requestAnimationFrame=function(cb){return r(function(t){if(window.__pz)window.requestAnimationFrame(cb);else cb(t)})};'+
 'function pz(v){window.__pz=v;if(v&&!ov&&document.body){ov=document.createElement("div");ov.style.cssText="position:fixed;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;background:rgba(6,9,16,.74);color:#fff;font:800 26px system-ui,sans-serif;z-index:2147483647;cursor:pointer;text-align:center";ov.textContent="⏸ Pause – klicken oder P drücken";ov.onclick=function(){pz(false)};document.body.appendChild(ov)}else if(!v&&ov){ov.remove();ov=null}}window.__pzf=pz;'+
 'addEventListener("keydown",function(e){if(e.code=="Digit0"||e.code=="Numpad0"){e.stopImmediatePropagation();e.preventDefault();parent.postMessage({pp:1,k:"panic"},"*")}else if(e.code=="Backspace"||e.code=="Escape"){e.stopImmediatePropagation();e.preventDefault();parent.postMessage({pp:1,k:"close"},"*")}else if(e.code=="KeyP"&&!e.repeat){pz(!window.__pz)}},true);'+
 'addEventListener("blur",function(){pz(true)});'+
 'try{if(parent.__frameInit)parent.__frameInit(window)}catch(e){}})();';
-var FILES={a3d:'games/arcade-3d.html',pa:'games/pausen-arcade.html',poly:'games/poly-rush.html',ns:'games/neon-survivor.html',tk:'games/turbo-kick.html'};
+var FILES={mp:'games/multi.html',a3d:'games/arcade-3d.html',pa:'games/pausen-arcade.html',poly:'games/poly-rush.html',ns:'games/neon-survivor.html',tk:'games/turbo-kick.html'};
 function mountFrame(gm,s){
   var f=document.createElement('iframe'),url=FILES[gm.src],done=false;f.title=gm.name;f.setAttribute('allow','fullscreen');
   frameEl=f;s.className='stage';s.innerHTML='<div class="gamebox"><p>Lade …</p></div>';
@@ -102,7 +107,7 @@ function mountFrame(gm,s){
     function go(){
       if(done||frameEl!==f)return;done=true;
       var doc=f.contentDocument;doc.open();doc.write(html);doc.close();
-      try{var w=f.contentWindow;if(gm.start&&w.__arcade)w.__arcade.start(gm.start);w.focus()}catch(e){}
+      try{var w=f.contentWindow;if(gm.start&&w.__arcade)w.__arcade.start(gm.start);else if(gm.start&&w.__mp)w.__mp.start(gm.start);w.focus()}catch(e){}
     }
     f.onload=go;s.appendChild(f);setTimeout(go,300);
   }).catch(function(){
@@ -222,7 +227,7 @@ drawStats();tick();setInterval(tick,1000);loadWx();setInterval(loadWx,9e5);bgSet
 
 var n3=catalog.filter(function(g){return tagsOf(g).indexOf('3D')>=0}).length;
 $('#heroP').textContent=catalog.length+' Spiele: '+n3+' in 3D und '+catalog.filter(function(g){return g.retro}).length+' Retro-Klassiker. Direkt spielbar, ohne Installation.';
-var TIPS=['Mit P pausierst du jedes Spiel, es pausiert auch von selbst, wenn du woanders klickst.','Die Taste 0 ist dein Panic-Knopf. Mit zweimal Tippen kommst du zurück.','Mit / springst du direkt ins Suchfeld.','Beim Basketball zählt das Timing: Wirf, wenn der Balken im grünen Bereich ist.','Beim Bowling kannst du den Ball mit A und D noch in der Kurve lenken.','Im Neon-Tunnel hilft es, schon früh auf die Lücke zuzusteuern.','Bei Dash 3D kannst du auf den orangen Blöcken landen, nicht nur drüber springen.','Wähle oben rechts über das Zahnrad deine Lieblingsfarbe.','Beim Minigolf reicht oft ein Schlag mit etwa 70 % Kraft.','Sammle Rekorde 🏆, sie geben dir extra XP für dein Level.'];
+var TIPS=['Mit P pausierst du jedes Spiel, es pausiert auch von selbst, wenn du woanders klickst.','Die Taste 0 ist dein Panic-Knopf. Mit zweimal Tippen kommst du zurück.','Mit / springst du direkt ins Suchfeld.','Beim Basketball zählt das Timing: Wirf, wenn der Balken im grünen Bereich ist.','Beim Bowling kannst du den Ball mit A und D noch in der Kurve lenken.','Im Neon-Tunnel hilft es, schon früh auf die Lücke zuzusteuern.','Bei Dash 3D kannst du auf den orangen Blöcken landen, nicht nur drüber springen.','Wähle oben rechts über das Zahnrad deine Lieblingsfarbe.','Beim Minigolf reicht oft ein Schlag mit etwa 70 % Kraft.','Sammle Rekorde 🏆, sie geben dir extra XP für dein Level.','Multiplayer: Lobby erstellen, den 5-stelligen Code an Freunde schicken, fertig. Es geht auch per Link.','Auf dem Handy erscheint eine Touch-Steuerung, mit 🎮 schaltest du sie ab.'];
 $('#tip').textContent='💡 '+TIPS[Math.floor(Date.now()/864e5)%TIPS.length];
 $('#newrow').innerHTML='<span class="muted">Neu:</span> '+catalog.filter(function(g){return g.isNew}).map(function(g){return '<button class="chip" data-play="'+g.id+'">'+g.emoji+' '+g.name+'</button>'}).join('');
 renderTabs();render();
@@ -241,7 +246,7 @@ function panic(){
   function add(c){
     if(!__locked)return;E.textContent='';if(cur.length<4)cur+=c;show();
     if(cur.length==4)setTimeout(function(){
-      if(cur===CODE){__locked=false;L.style.display='none';try{sessionStorage.setItem('pp_ok','1')}catch(e){}}
+      if(cur===CODE){__locked=false;L.style.display='none';try{sessionStorage.setItem('pp_ok','1')}catch(e){}if(window.onUnlock)onUnlock()}
       else{E.textContent='Falsches Passwort';cur='';show();B.classList.remove('lks');void B.offsetWidth;B.classList.add('lks')}
     },120);
   }

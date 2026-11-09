@@ -29,7 +29,7 @@
       <h1>Dein nächstes Spiel wartet.</h1>
       <p id="heroP"></p>
       <p class="tip" id="tip"></p>
-      <div class="cta"><button class="bigbtn" id="randomBtn">🎲 Zufallsspiel</button><button class="ghost" id="dailyBtn">⭐ Spiel des Tages</button></div>
+      <div class="cta"><button class="bigbtn" id="randomBtn">🎲 Zufallsspiel</button><button class="ghost" id="dailyBtn">⭐ Spiel des Tages</button><button class="ghost" id="joinBtn">🔗 Lobby beitreten</button></div>
     </div>
     <div class="widgets">
       <div class="wd"><div class="wl">Zürich</div><div class="clock" id="clock">--:--:--</div><div class="wsub" id="date"></div><div class="wsub" id="weekend"></div><div class="wsub" id="kw"></div></div>
@@ -49,9 +49,14 @@
 </main>
 <div id="fake"><div class="bar"><b>Dokumente</b> &nbsp; Referat_Industrielle_Revolution.docx &nbsp; Datei Bearbeiten Ansicht Einfügen</div><div class="page"><h3>Die Industrielle Revolution</h3><p>1. Einleitung<br>Die Industrielle Revolution begann im 18. Jahrhundert in Großbritannien und veränderte die Arbeits- und Lebenswelt grundlegend. Dampfmaschine, Eisenbahn und mechanische Webstühle ersetzten schrittweise die Handarbeit.</p><p>2. Ursachen<br>Zu den wichtigsten Ursachen zählen das Bevölkerungswachstum, neue Erfindungen, verfügbare Rohstoffe wie Kohle und Eisen sowie ein wachsender Welthandel.</p><p>3. Folgen<br>Städte wuchsen rasant, es entstand eine Arbeiterklasse, und soziale Fragen rückten in den Mittelpunkt der politischen Debatte.</p></div></div>
 <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Spiel">
-  <div class="bar"><strong id="gameName">Spiel</strong><span id="gameHint"></span><button class="close" id="fs" title="Vollbild">⛶</button><button class="close" id="restart">↻ Neu starten</button><button class="close" id="close">✕ Schliessen</button></div>
+  <div class="bar"><strong id="gameName">Spiel</strong><span id="gameHint"></span><button class="close" id="padBtn" title="Touch-Steuerung an/aus">🎮</button><button class="close" id="fs" title="Vollbild">⛶</button><button class="close" id="restart">↻<span> Neu starten</span></button><button class="close" id="close">✕<span> Schliessen</span></button></div>
   <div class="stage" id="stage"></div>
+  <div class="pad" id="pad"><div class="dpad"><button data-k="ArrowUp">▲</button><button data-k="ArrowLeft">◀</button><button data-k="ArrowRight">▶</button><button data-k="ArrowDown">▼</button></div><div class="abtns"><button data-k="KeyE" class="b">B</button><button data-k="Space" class="a">A</button></div></div>
 </div>
+<div class="modal" id="modal"><div class="mbox" id="mbox"></div></div>
+<div class="toast" id="toast"></div>
 <script src="app.js"></script>
+<script src="multiplayer.js"></script>
+<script src="responsive.js"></script>
 </body>
 </html>
