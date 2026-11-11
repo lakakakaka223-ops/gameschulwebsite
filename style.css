@@ -146,3 +146,9 @@ body[data-dev=tablet] .grid{grid-template-columns:repeat(auto-fill,minmax(180px,
 body[data-dev=tablet] .overlay{padding:8px}
 @media (hover:none){.game:hover,.wd:hover{transform:none;box-shadow:none}}
 @media (max-width:420px){.codebig{font-size:40px;letter-spacing:8px}.mbox{padding:18px}}
+
+/* ===== QR-Code und Scanner ===== */
+.qr{display:flex;justify-content:center;margin:8px 0 2px;min-height:10px}
+.qr img{width:176px;height:176px;image-rendering:pixelated;border-radius:12px;background:#fff;padding:6px}
+.vid{background:#000;border-radius:14px;overflow:hidden;margin:8px 0}.vid video{width:100%;display:block;max-height:48vh;object-fit:cover}
+.bigbtn.scan{flex:0 0 56px;padding:0;font-size:22px}

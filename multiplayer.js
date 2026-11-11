@@ -3,7 +3,7 @@ var PPNet=null,NET=null;
 var MPERR={'unavailable-id':'Dieser Code ist schon vergeben.','peer-unavailable':'Keine Lobby mit diesem Code gefunden.','network':'Netzwerkfehler. Bist du online?','server-error':'Der Vermittlungsserver ist nicht erreichbar.','socket-error':'Der Vermittlungsserver ist nicht erreichbar.','socket-closed':'Die Verbindung zum Vermittlungsserver ist abgebrochen.','browser-incompatible':'Dein Browser unterstützt keine Direktverbindungen (WebRTC).'};
 function pname(){var n=jget('pp-name','');if(!n){n='Spieler'+(10+Math.floor(Math.random()*90));jset('pp-name',n)}return n}
 function mod(h){$('#mbox').innerHTML=h;$('#modal').classList.add('open')}
-function modClose(){$('#modal').classList.remove('open')}
+function modClose(){stopScan();$('#modal').classList.remove('open')}
 function mErr(t,ok){var e=$('#mErr');if(e){e.textContent=t;e.className=ok?'ok':'bad'}}
 function peerLib(ok,fail){
   if(window.Peer)return ok();
@@ -32,10 +32,11 @@ function startSolo(g){
 function openMulti(g,code){
   mod('<h2>'+(g?g.emoji+' '+g.name:'🔗 Lobby beitreten')+'</h2><label class="lbl">Dein Name</label><input class="inp" id="mName" maxlength="14" value="'+pname()+'">'+
     (g?'<div class="mrow"><button class="bigbtn" id="mCreate">➕ Lobby erstellen</button></div><div class="or">oder</div>':'')+
-    '<label class="lbl">Lobby-Code (5 Ziffern)</label><div class="mrow"><input class="inp code" id="mCode" maxlength="5" inputmode="numeric" placeholder="12345" value="'+(code||'')+'"><button class="bigbtn alt" id="mJoin">Beitreten</button></div><div id="mErr"></div><button class="ghost" id="mX">Abbrechen</button>');
+    '<label class="lbl">Lobby-Code (5 Ziffern)</label><div class="mrow"><input class="inp code" id="mCode" maxlength="5" inputmode="numeric" placeholder="12345" value="'+(code||'')+'"><button class="bigbtn alt scan" id="mScan" title="QR-Code scannen">📷</button><button class="bigbtn alt" id="mJoin">Beitreten</button></div><div id="mErr"></div><button class="ghost" id="mX">Abbrechen</button>');
   var nm=function(){var v=$('#mName').value.trim().slice(0,14)||pname();jset('pp-name',v)};
   if(g)$('#mCreate').onclick=function(){nm();createLobby(g,0)};
   $('#mJoin').onclick=function(){nm();joinLobby($('#mCode').value.trim())};
+  $('#mScan').onclick=function(){nm();openScan()};
   $('#mCode').oninput=function(){this.value=this.value.replace(/\D/g,'').slice(0,5)};
   $('#mX').onclick=function(){leaveNet();modClose()};
 }
@@ -153,10 +154,11 @@ function renderRoom(){
   var max=g.mp.max,min=g.mp.min,link=location.href.split('?')[0].split('#')[0]+'?join='+NET.code;
   var li=nm.map(function(n,i){return '<li>'+(i==0?'👑 ':'🎮 ')+n+(n===pname()?' <em>(du)</em>':'')+'</li>'}).join('');
   for(var k=nm.length;k<max;k++)li+='<li class="empty">wartet auf Spieler …</li>';
-  mod('<h2>'+g.emoji+' '+g.name+'</h2><div class="lbl">Lobby-Code</div><div class="codebig" id="mCodeBig">'+NET.code+'</div><div class="mrow"><button class="ghost" id="mCopy">🔗 Link kopieren</button></div>'+
+  mod('<h2>'+g.emoji+' '+g.name+'</h2><div class="lbl">Lobby-Code</div><div class="codebig" id="mCodeBig">'+NET.code+'</div><div class="qr" id="mQR"></div><div class="mrow"><button class="ghost" id="mCopy">🔗 Link kopieren</button></div>'+
     '<div class="lbl">Spieler '+nm.length+' / '+max+'</div><ul class="plist">'+li+'</ul>'+
     (host?'<button class="bigbtn" id="mStart"'+(nm.length<min?' disabled':'')+'>▶ Spiel starten'+(nm.length<min?' <small>(mind. '+min+' Spieler)</small>':'')+'</button>':'<p class="muted">Warte, bis der Host das Spiel startet …</p>')+
     '<div id="mErr"></div><button class="ghost" id="mLeave">Lobby verlassen</button>');
+  showQR(link);
   $('#mCopy').onclick=function(){try{navigator.clipboard.writeText(link);mErr('Link kopiert: '+link,1)}catch(e){mErr(link,1)}};
   $('#mLeave').onclick=function(){leaveNet();modClose()};
   if(host)$('#mStart').onclick=hostStart;
@@ -167,3 +169,32 @@ var PENDING_JOIN=(location.search.match(/[?&]join=(\d{5})/)||[])[1]||'';
 function onUnlock(){if(PENDING_JOIN){var c=PENDING_JOIN;PENDING_JOIN='';openMulti(null,c)}}
 var jb=document.getElementById('joinBtn');if(jb)jb.onclick=function(){openMulti(null)};
 if(typeof __locked!=='undefined'&&!__locked)setTimeout(onUnlock,300);
+
+/* ---- QR-Code anzeigen und scannen ---- */
+function loadLib(src,have,ok,fail){if(have())return ok();var s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=fail;document.head.appendChild(s)}
+function showQR(link){
+  loadLib('lib/qrcode.js',function(){return window.qrcode},function(){
+    try{var q=qrcode(0,'M');q.addData(link);q.make();var e=$('#mQR');if(e)e.innerHTML='<img alt="QR-Code zum Beitreten" src="'+q.createDataURL(5,2)+'">'}catch(x){}
+  },function(){});
+}
+function qrCode(s){var m=String(s).match(/join=(\d{5})/)||String(s).match(/^\s*(\d{5})\s*$/);return m?m[1]:''}
+var SCAN=null;
+function stopScan(){if(SCAN){clearInterval(SCAN.t);try{SCAN.st.getTracks().forEach(function(t){t.stop()})}catch(e){}SCAN=null}}
+function openScan(){
+  mod('<h2>📷 QR-Code scannen</h2><p>Halte die Kamera auf den QR-Code der Lobby. Er wird automatisch erkannt.</p><div class="vid"><video id="mVid" playsinline muted autoplay></video></div><div id="mErr"></div><button class="ghost" id="mScanX">Abbrechen</button>');
+  $('#mScanX').onclick=function(){stopScan();openMulti(null)};
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){mErr('Dein Browser erlaubt hier keinen Kamerazugriff. Gib den Code von Hand ein.');return}
+  loadLib('lib/jsQR.js',function(){return window.jsQR},function(){
+    navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}).then(function(st){
+      var v=$('#mVid');if(!v){st.getTracks().forEach(function(t){t.stop()});return}
+      v.srcObject=st;try{v.play()}catch(e){}
+      var cv=document.createElement('canvas'),cx=cv.getContext('2d',{willReadFrequently:true});
+      SCAN={st:st,t:setInterval(function(){
+        if(!v.videoWidth)return;
+        var sc=Math.min(1,480/v.videoWidth);cv.width=Math.round(v.videoWidth*sc);cv.height=Math.round(v.videoHeight*sc);cx.drawImage(v,0,0,cv.width,cv.height);
+        var d=cx.getImageData(0,0,cv.width,cv.height),r=window.jsQR(d.data,d.width,d.height),c=r&&qrCode(r.data);
+        if(c){stopScan();openMulti(null,c);joinLobby(c)}
+      },180)};
+    }).catch(function(e){mErr('Kamera nicht verfügbar: '+(e&&e.name=='NotAllowedError'?'Zugriff verweigert. Erlaube die Kamera für diese Seite.':(e&&e.name)||'unbekannter Fehler'))});
+  },function(){mErr('Der Scanner konnte nicht geladen werden.')});
+}

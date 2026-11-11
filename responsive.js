@@ -1,5 +1,5 @@
 /* ===== Geräte-Anpassung (Handy, Tablet, Desktop) und Touch-Steuerung ===== */
-var DEV='desktop',NOPAD=['d-whack','d-hoops','d-golf','d-gallery','d-bowling','d-stack','d-zig','p-cookie','p-blast','p-hook','p-stack','p-paper','m-connect4','m-react','m-hockey'];
+var DEV='desktop',NOPAD=['d-whack','d-hoops','d-golf','d-gallery','d-bowling','d-stack','d-zig','p-cookie','p-blast','p-hook','p-stack','p-paper','m-connect4','m-react','m-hockey','m-mathq','m-typing','m-potato','m-memory'],PADWASD=['m-shooter'],WM={ArrowUp:'KeyW',ArrowLeft:'KeyA',ArrowDown:'KeyS',ArrowRight:'KeyD'};
 function detect(){
   var coarse=window.matchMedia&&matchMedia('(pointer:coarse)').matches,m=Math.min(innerWidth,innerHeight);
   DEV=coarse?(m<600?'phone':'tablet'):'desktop';
@@ -15,8 +15,8 @@ new MutationObserver(function(){
   var g=curGame();
   if($('#overlay').classList.contains('open')&&g&&g.src&&DEV==='phone'&&document.body.dataset.ori==='portrait'&&!sessionStorage.getItem('pp-rot')){try{sessionStorage.setItem('pp-rot','1')}catch(e){}toast('↻ Tipp: Dreh dein Handy ins Querformat für mehr Platz')}
 }).observe($('#overlay'),{attributes:true,attributeFilter:['class']});
-var KM={Space:' ',KeyE:'e'};
-function padKey(code,down){var w=frameEl&&frameEl.contentWindow;if(!w)return;try{w.dispatchEvent(new w.KeyboardEvent(down?'keydown':'keyup',{code:code,key:KM[code]||code,bubbles:true}))}catch(e){}}
+var KM={Space:' ',KeyE:'e',KeyW:'w',KeyA:'a',KeyS:'s',KeyD:'d'};
+function padKey(code,down){var w=frameEl&&frameEl.contentWindow;if(!w)return;var cg=curGame();if(cg&&PADWASD.indexOf(cg.id)>=0&&WM[code])code=WM[code];try{w.dispatchEvent(new w.KeyboardEvent(down?'keydown':'keyup',{code:code,key:KM[code]||code,bubbles:true}))}catch(e){}}
 var held={};
 $('#pad').addEventListener('pointerdown',function(e){
   var b=e.target.closest('[data-k]');if(!b)return;e.preventDefault();
