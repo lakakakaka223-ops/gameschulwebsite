@@ -121,7 +121,7 @@ function actFor(code){
   for(let h=0;h<hs.length;h++)for(const m of sets(h))for(const a in m)if(m[a].includes(code))r.push([h,a]);
   return r;
 }
-function bossToggle(){paused=!paused;fake.style.display=paused?'block':'none';document.title=paused?'Referat - Dokumente':'Turbo Kick'}
+function bossToggle(){paused=!paused;fake.style.display=paused?'block':'none';document.title=paused?'Notentabelle - Dokumente':'Turbo Kick'}
 addEventListener('keydown',e=>{
   if(e.code==='Digit0'||e.code==='Numpad0'){bossToggle();return}
   if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Slash'].includes(e.code))e.preventDefault();
