@@ -245,7 +245,7 @@ function panic(){
   f.style.display='block';__paused=true;document.title='Referat - Dokumente';if(fr&&fr.__pzf)fr.__pzf(true);
 }
 (function(){
-  var L=document.getElementById('pplock'),D=document.getElementById('lkd'),E=document.getElementById('lke'),B=L.firstElementChild,CODE='0101',cur='';
+  var L=document.getElementById('pplock'),D=document.getElementById('lkd'),E=document.getElementById('lke'),B=L.firstElementChild,CODE='8625',cur='';
   try{if(sessionStorage.getItem('pp_ok')=='1'){L.style.display='none';__locked=false}}catch(e){}
   function show(){var s='';for(var i=0;i<4;i++)s+=(i<cur.length?'●':'○')+(i<3?' ':'');D.textContent=s}
   function add(c){
