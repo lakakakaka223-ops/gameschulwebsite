@@ -708,7 +708,7 @@ var PANIC_URL='https://gossau.escola.ch/escola/login';
 function panic(){
   if(fake.style.display=='block'){fake.style.display='none';paused=false;document.title='Pausen-Arcade';return}
   try{window.open(PANIC_URL,'_blank')}catch(e){}
-  fake.style.display='block';paused=true;document.title='Referat - Dokumente';
+  fake.style.display='block';paused=true;document.title='Notentabelle - Dokumente';
 }
 $('panic').onclick=panic;
 
