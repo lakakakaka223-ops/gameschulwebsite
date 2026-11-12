@@ -106,7 +106,7 @@ function die(){
 
 addEventListener('keydown',e=>{
   const k=e.key.toLowerCase();
-  if(e.code==='Digit0'||e.code==='Numpad0'){paused=!paused;fake.style.display=paused?'block':'none';document.title=paused?'Referat - Dokumente':'Neon Survivor';return}
+  if(e.code==='Digit0'||e.code==='Numpad0'){paused=!paused;fake.style.display=paused?'block':'none';document.title=paused?'Notentabelle - Dokumente':'Neon Survivor';return}
   keys[k]=true;
   if(S==='lvl'&&'123'.includes(k))choose(+k-1);
   if((S==='menu'||S==='dead')&&(k==='enter'||k===' '))start();
