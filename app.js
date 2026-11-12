@@ -241,7 +241,7 @@ var __paused=false,__locked=true;
 function panic(){
   var f=document.getElementById('fake'),fr=(typeof frameEl!=='undefined'&&frameEl&&frameEl.contentWindow)?frameEl.contentWindow:null;
   if(f.style.display==='block'){f.style.display='none';__paused=false;document.title='PixelPlay – Spiele';return}
-  try{window.open('https://de.wikipedia.org/wiki/Industrielle_Revolution','_blank')}catch(e){}
+  try{window.open('https://gossau.escola.ch/escola/login','_blank')}catch(e){}
   f.style.display='block';__paused=true;document.title='Referat - Dokumente';if(fr&&fr.__pzf)fr.__pzf(true);
 }
 (function(){
